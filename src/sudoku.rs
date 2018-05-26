@@ -12,7 +12,8 @@ const DIMENSIONS: usize = 2; // We may allow changing this later.
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub struct Element(u8);
 
-/// A subdivision of the main sudoku; the smallest grouping to which rules are applied.
+/// A subdivision of the main sudoku; the smallest grouping to which rules are
+/// applied.
 #[derive(Debug)]
 pub enum Group {
     /// A square set of [elements](struct.Element.html).
@@ -41,7 +42,8 @@ pub enum Group {
 impl Group {
     /// Whether a group is valid (contains no errors).
     ///
-    /// A group is considered valid if it contains only unique elements (ignoring empty elements).
+    /// A group is considered valid if it contains only unique elements
+    /// (ignoring empty elements).
     fn is_valid(&self) -> bool {
         let elements = self.elements();
         let elements = elements.iter().filter(|e| e.is_some()).collect::<Vec<_>>();
@@ -53,7 +55,8 @@ impl Group {
     }
     /// Whether a group is complete.
     ///
-    /// A group is considered complete if it contains every possible element value exactly once.
+    /// A group is considered complete if it contains every possible element
+    /// value exactly once.
     fn is_complete(&self) -> bool {
         let elements = self.elements();
         let elements = elements.iter().filter(|e| e.is_some()).collect::<Vec<_>>();
@@ -89,8 +92,8 @@ pub struct Sudoku {
 /// The point is fully specified in `DIMENSIONS` dimensions.
 ///
 /// # Coordinate System
-/// The coordinate system used in this library sets the origin in the top-left corner, with
-/// increasing x to the right and increasing y downward.
+/// The coordinate system used in this library sets the origin in the top-left
+/// corner, with increasing x to the right and increasing y downward.
 ///
 /// Additional axes (if applicable) follow the right-hand rule.
 pub type Point = [u8; DIMENSIONS];
@@ -113,7 +116,8 @@ impl Sudoku {
 
     /// Returns the relevant groups for checking a given element in the grid.
     ///
-    /// The number of groups is always equal to the number of dimensions plus one.
+    /// The number of groups is always equal to the number of dimensions plus
+    /// one.
     pub fn groups(&self, pos: Point) -> [Group; DIMENSIONS + 1] {
         assert!(pos[0] < self.order.pow(2));
         assert!(pos[1] < self.order.pow(2));
