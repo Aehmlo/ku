@@ -113,7 +113,7 @@ impl Sudoku {
     fn new(order: u8) -> Self {
         Self {
             order,
-            elements: Vec::with_capacity(order.pow(4) as usize),
+            elements: Vec::with_capacity((order as usize).pow(4)),
         }
     }
 
