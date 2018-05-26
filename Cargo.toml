@@ -1,0 +1,16 @@
+[package]
+name = "sudoku"
+version = "0.1.0"
+authors = ["Alex Hamilton <alex.hamilton@ou.edu>"]
+publish = false
+
+[[bin]]
+name = "sugen"
+path = "src/main.rs"
+
+[lib]
+name = "sudoku"
+path = "src/lib.rs"
+
+[dependencies]
+rand = "0.4.2"
