@@ -84,12 +84,6 @@ pub struct Sudoku {
     pub elements: Vec<Option<Element>>,
 }
 
-/*impl From<Vec<Element>> for $group {
-	fn from(elements: Vec<Element>) -> Self {
-		Self { elements }
-	}
-}*/
-
 /// Specifies a sudoku element's location in space.
 ///
 /// The point is fully specified in `DIMENSIONS` dimensions.
@@ -146,3 +140,81 @@ impl Score for Sudoku {
 }
 
 impl Generate for Sudoku {}
+
+#[cfg(test)]
+mod tests {
+    use sudoku::{Element, Group, Sudoku};
+    use Puzzle;
+
+    // TODO: Procedural macro-ify these tests
+    // TODO: Implement positive tests for Sudoku::groups
+    #[test]
+    #[should_panic]
+    fn test_sudoku_groups_index_x_3() {
+        let sudoku = Sudoku::new(3);
+        let _ = sudoku.groups([9, 0]);
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_sudoku_groups_index_y_3() {
+        let sudoku = Sudoku::new(3);
+        let _ = sudoku.groups([0, 9]);
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_sudoku_groups_index_x_4() {
+        let sudoku = Sudoku::new(4);
+        let _ = sudoku.groups([16, 0]);
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_sudoku_groups_index_y_4() {
+        let sudoku = Sudoku::new(4);
+        let _ = sudoku.groups([0, 16]);
+    }
+
+    #[test]
+    fn test_sudoku_new() {
+        for order in 2..10usize {
+            let sudoku = Sudoku::new(order as u8);
+            assert_eq!(sudoku.elements.capacity(), order.pow(4));
+        }
+    }
+
+    #[test]
+    fn test_group_is_valid() {
+        let group = Group::Box(vec![]);
+        assert!(group.is_valid());
+        let group = Group::Box(vec![Some(Element(1)), Some(Element(1))]);
+        assert!(!group.is_valid());
+    }
+
+    #[test]
+    fn test_group_is_complete() {
+        for vec in [vec![], vec![Some(Element(1)), Some(Element(2))]].into_iter() {
+            let group = Group::Box(vec.clone());
+            assert!(group.is_complete());
+        }
+        let group = Group::Box(vec![Some(Element(1)), Some(Element(1))]);
+        assert!(!group.is_complete());
+    }
+
+    #[test]
+    fn test_group_elements() {
+        for vec in [vec![], vec![Some(Element(2)), Some(Element(6)), None]].into_iter() {
+            let group = Group::Box(vec.clone());
+            assert_eq!(&group.elements(), vec);
+        }
+    }
+
+    #[test]
+    fn test_sudoku_order() {
+        for order in 1..10 {
+            let sudoku = Sudoku::new(order);
+            assert_eq!(sudoku.order(), order);
+        }
+    }
+}
