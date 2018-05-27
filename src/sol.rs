@@ -47,10 +47,7 @@ pub enum Error {
 }
 
 /// Trait defining a solvable puzzle.
-pub trait Solve
-where
-    Self: Sized,
-{
+pub trait Solve: Sized {
     /// Returns the puzzle's unique solution if it exists.
     fn solution(&self) -> Result<Self, Error>;
     /// Whether the puzzle has a unique solution.
