@@ -1,3 +1,27 @@
+//! Items for solving a sudoku.
+//!
+//! The general algorithm is based on
+//! [that proposed by Daniel Beer](https://dlbeer.co.nz/articles/sudoku.html).
+//!
+//! # Approach
+//!
+//! We first find the empty element with the fewest possible values. We then try each of these
+//! candidates, recursively solving from there until we (hopefully) find a solution.
+//!
+//! We search until we've either found two solutions (meaning that the puzzle is not uniquely
+//! solvable) or exhausted the search tree.
+//!
+//! # Scoring
+//! During the solving process, we calculate a *branch-difficulty score*, `S = Σ((B - 1)²)`, where
+//! `B` is the branching factor at a given node in the search tree from root to solution.
+//!
+//! If no backtracking occurs, the branch-difficulty score is 0.
+//!
+//! ## Tabulation
+//! The final difficulty score is given by `D = S * C + E`, where `C` is the first power of 10
+//! greater than the number of elements and `E` is the number of empty elements.
+use Sudoku;
+
 /// Represents the difficulty of a puzzle.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Difficulty {
