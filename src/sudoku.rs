@@ -107,7 +107,7 @@ impl Sudoku {
     /// This method **does not** generate a valid, uniquely solvable sudoku.
     /// If you wish to generate such a sudoku (which you likely do), use
     /// [`Sudoku::generate`](#method.generate).
-    fn new(order: u8) -> Self {
+    pub fn new(order: u8) -> Self {
         Self {
             order,
             elements: Vec::with_capacity((order as usize).pow(4)),
