@@ -1,8 +1,17 @@
 [package]
-name = "sudoku"
+name = "ku"
 version = "0.1.0"
 authors = ["Alex Hamilton <alex.hamilton@ou.edu>"]
 publish = false
+description = "A sudoku crate."
+repository = "https://github.com/aehmlo/ku"
+readme = "README.md"
+keywords = ["sudoku"]
+license = "Apache-2.0"
+
+[badges]
+travis-ci = { repository = "aehmlo/ku", branch = "master" }
+maintenance = { status = "actively-developed" }
 
 [[bin]]
 name = "sugen"
