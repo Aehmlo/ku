@@ -20,6 +20,7 @@
 //! ## Tabulation
 //! The final difficulty score is given by `D = S * C + E`, where `C` is the first power of 10
 //! greater than the number of elements and `E` is the number of empty elements.
+use Puzzle;
 use Sudoku;
 
 /// Represents the difficulty of a puzzle.
@@ -75,10 +76,36 @@ pub trait Score: Solve {
     }
 }
 
+struct Context {
+    problem: Sudoku,
+    count: usize,
+    solution: Option<Sudoku>,
+    branch_score: usize,
+}
+
+mod calc {
+    use Puzzle;
+    use Sudoku;
+
+    /// Calculates the value of `C`, as discussed in [Scoring](#Scoring).
+    pub fn c(sudoku: &Sudoku) -> usize {
+        let order = sudoku.order();
+        10.0_f64.powf((order as f64).powf(4.0).log10().ceil()) as usize
+    }
+
+    /// Calculates the value of `D`, as discussed in [Scoring](#Scoring).
+    pub fn difficulty(s: usize, c: usize, e: usize) -> usize {
+        s * c + e
+    }
+}
+
 #[cfg(test)]
 mod tests {
 
-    use sol::{Difficulty, Error, Score, Solve};
+    use sol::{
+        calc::{c, difficulty}, Difficulty, Error, Score, Solve,
+    };
+    use Sudoku;
 
     struct DummyPuzzle(bool);
 
@@ -142,4 +169,26 @@ mod tests {
         }
     }
 
+    #[test]
+    fn test_calculate_c() {
+        let sudoku = Sudoku::new(3);
+        assert_eq!(c(&sudoku), 100);
+        let sudoku = Sudoku::new(4);
+        assert_eq!(c(&sudoku), 1_000);
+        let sudoku = Sudoku::new(5);
+        assert_eq!(c(&sudoku), 1_000);
+        let sudoku = Sudoku::new(6);
+        assert_eq!(c(&sudoku), 10_000);
+    }
+
+    #[test]
+    fn test_calculate_difficulty() {
+        for s in 0..70 {
+            for c in 2..5 {
+                for e in 0..50 {
+                    assert_eq!(difficulty(s, 10usize.pow(c), e), s * 10usize.pow(c) + e);
+                }
+            }
+        }
+    }
 }
