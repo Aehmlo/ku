@@ -4,7 +4,9 @@ use Puzzle;
 use Score;
 use Solve;
 
-use std::ops::{Index, IndexMut};
+use std::{
+    fmt, ops::{Index, IndexMut}, str::FromStr,
+};
 
 const DIMENSIONS: usize = 2; // We may allow changing this later.
 
@@ -80,7 +82,7 @@ impl Group {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 /// A (partial) grid of [elements](struct.Element.html).
 pub struct Sudoku {
     /// The [order](trait.Puzzle.html#method.order) of this sudoku.
@@ -180,6 +182,13 @@ impl Sudoku {
     }
 }
 
+impl Index<Point> for Sudoku {
+    type Output = Option<Element>;
+    fn index(&self, index: Point) -> &Self::Output {
+        &self.elements[index.fold(self.order)]
+    }
+}
+
 impl Puzzle for Sudoku {
     fn order(&self) -> u8 {
         self.order
@@ -199,6 +208,90 @@ impl Score for Sudoku {
 }
 
 impl Generate for Sudoku {}
+
+impl fmt::Display for Sudoku {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+        let order = self.order;
+        let axis = order.pow(2);
+        // TODO: Higher dimensions
+        for y in 0..axis {
+            for x in 0..axis {
+                let element = self[Point([x, y])];
+                match element {
+                    Some(Element(value)) => {
+                        write!(f, "{}", value)?;
+                    }
+                    None => {
+                        write!(f, "_")?;
+                    }
+                }
+                if x != axis - 1 {
+                    write!(f, " ")?;
+                }
+            }
+            write!(f, "\n")?;
+        }
+        Ok(())
+    }
+}
+
+/// Represents a deserialization error.
+#[derive(Clone, Copy, Debug)]
+pub enum ParseError {
+    /// Represents a grid with differing width and height.
+    UnequalDimensions,
+    /// Represents the presence of a value too large for the puzzle's dimensions.
+    ///
+    /// The associated values are the large value and its would-be location in the puzzle.
+    LargeValue(u8, Point),
+    /// Represents a grid with a non-perfect-square axial length.
+    NonSquareAxis,
+}
+
+impl FromStr for Sudoku {
+    type Err = ParseError;
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let mut rows = s
+            .split("\n")
+            .map(|row| {
+                row.split(" ")
+                    .map(|cell| cell.parse().ok().map(|value| Element(value)))
+                    .collect::<Vec<_>>()
+            })
+            .collect::<Vec<_>>();
+        let order = (rows.len() as f64).sqrt() as usize;
+        println!("Order: {}", order);
+        if rows.len() == order * order + 1 {
+            let last = rows.pop().unwrap();
+            if last.len() != 1 || last[0] != None {
+                return Err(ParseError::NonSquareAxis);
+            }
+        }
+        let axis = rows.len();
+        if order * order != axis {
+            return Err(ParseError::NonSquareAxis);
+        }
+        let mut elements = Vec::with_capacity(axis.pow(2));
+        for j in 0..axis {
+            let row = &rows[j];
+            if row.len() != axis {
+                return Err(ParseError::UnequalDimensions);
+            }
+            for i in 0..axis {
+                if let Some(Element(value)) = row[i] {
+                    if value > axis as u8 {
+                        return Err(ParseError::LargeValue(value, Point([i as u8, j as u8])));
+                    }
+                }
+                elements.push(row[i]);
+            }
+        }
+        Ok(Sudoku {
+            order: order as u8,
+            elements,
+        })
+    }
+}
 
 #[cfg(test)]
 mod tests {
@@ -330,5 +423,138 @@ mod tests {
                 assert_eq!(point.snap(3), Point([x, y]));
             }
         }
+    }
+    #[cfg_attr(rustfmt, rustfmt_skip)]
+    #[test]
+    fn test_sudoku_from_str() {
+        let possible = [
+            "_ _ _ _ _ _ _ _ _\n\
+            _ _ _ _ _ _ _ _ _\n\
+            _ _ _ _ _ _ _ _ _\n\
+            _ _ _ _ _ _ _ _ _\n\
+            _ _ _ _ _ _ _ _ _\n\
+            _ _ _ _ _ _ _ _ _\n\
+            _ _ _ _ _ _ _ _ _\n\
+            _ _ _ _ _ _ _ _ _\n\
+            _ _ _ _ _ _ _ _ _\n",
+            "_ _ _ _ 2 _ _ _ _\n\
+            _ _ _ _ _ 4 _ _ _\n\
+            _ _ _ _ _ _ _ _ _\n\
+            _ _ _ _ _ _ _ 9 _\n\
+            _ _ _ _ _ _ _ _ _\n\
+            _ _ _ _ _ _ _ _ _\n\
+            _ _ _ _ 7 _ _ _ _\n\
+            _ _ _ _ _ _ _ 4 _\n\
+            _ _ _ _ _ _ _ _ 1\n",
+            "_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\
+            _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\
+            _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\
+            _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\
+            _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\
+            _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\
+            _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\
+            _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\
+            _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\
+            _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\
+            _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\
+            _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\
+            _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\
+            _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\
+            _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\
+            _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n",
+            "_ _ _ _ 16 _ _ _ _ _ _ _ _ _ _ _\n\
+            _ 1 _ _ _ 4 _ _ _ _ _ _ _ _ _ _\n\
+            _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\
+            _ _ _ _ _ _ _ 9 _ _ _ _ _ _ _ _\n\
+            _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\
+            _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\
+            _ _ _ _ 7 _ _ _ _ _ _ _ _ _ _ _\n\
+            _ _ _ _ _ _ _ 4 _ _ _ _ _ _ _ _\n\
+            _ _ _ _ _ _ _ _ 1 _ _ _ _ _ _ _\n\
+            _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\
+            _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\
+            _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\
+            _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\
+            _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\
+            _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\
+            _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n",
+        ];
+        for s in possible.iter() {
+            let puzzle = s.parse::<Sudoku>();
+            assert!(puzzle.is_ok());
+        }
+        let impossible = [
+            "_ _ _ _ _ _ _ _ _\n\
+            _ _ _ _ _ _ _ _ _\n\
+            _ _ _ _ _ _ _ _ _\n\
+            _ _ _ _ _ _ _ _ _\n\
+            _ _ _ _ _ _ _ _ _\n\
+            _ _ _ _ _ _ _ _ _ _\n\
+            _ _ _ _ _ _ _ _ _\n\
+            _ _ _ _ _ _ _ _ _\n\
+            _ _ _ _ _ _ _ _ _\n",
+            "_ _ _ _ 2 _ _ 10 _\n\
+            _ _ _ _ _ 4 _ _ _\n\
+            _ _ _ _ _ _ _ _ _\n\
+            _ _ _ _ _ _ _ 9 _\n\
+            _ _ _ _ _ _ _ _ _\n\
+            _ _ _ _ _ _ _ _ _\n\
+            _ _ _ _ 7 _ _ _ _\n\
+            _ _ _ _ _ _ _ 4 _\n\
+            _ _ _ _ _ _ _ _ 1\n",
+            "_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\
+            _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\
+            _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\
+            _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\
+            _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\
+            _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\
+            _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\
+            _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\
+            _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\
+            _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\
+            _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\
+            _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\
+            _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\
+            _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\
+            _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\
+            _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n",
+            "_ _ _ _ 17 _ _ _ _ _ _ _ _ _ _ _\n\
+            _ 1 _ _ _ 4 _ _ _ _ _ _ _ _ _ _\n\
+            _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\
+            _ _ _ _ _ _ _ 9 _ _ _ 23 _ _ _ _\n\
+            _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\
+            _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\
+            _ _ _ _ 7 _ _ _ _ _ _ _ _ _ _ _\n\
+            _ _ _ _ _ _ _ 4 _ _ _ _ _ _ _ _\n\
+            _ _ _ _ _ _ _ _ 1 _ _ _ _ _ _ _\n\
+            _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\
+            _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\
+            _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\
+            _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\
+            _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\
+            _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\
+            _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n",
+        ];
+        for s in impossible.iter() {
+            let puzzle = s.parse::<Sudoku>();
+            assert!(puzzle.is_err());
+        }
+    }
+
+    #[cfg_attr(rustfmt, rustfmt_skip)]
+    #[test]
+    fn test_sudoku_from_str_parse_compose() {
+        let s = "_ _ _ _ _ _ _ _ _\n\
+                 _ _ _ _ _ _ _ _ _\n\
+                 _ _ _ _ _ _ _ _ _\n\
+                 _ _ _ _ _ _ _ _ _\n\
+                 _ _ _ _ _ _ _ _ _\n\
+                 _ _ _ _ _ _ _ _ _\n\
+                 _ _ _ _ _ _ _ _ _\n\
+                 _ _ _ _ _ _ _ _ _\n\
+                 _ _ _ _ _ _ _ _ _\n";
+        let puzzle = s.parse::<Sudoku>();
+        assert!(puzzle.is_ok());
+        assert_eq!(&format!("{}", puzzle.unwrap()), s);
     }
 }
