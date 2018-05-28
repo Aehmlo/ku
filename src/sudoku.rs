@@ -4,6 +4,8 @@ use Puzzle;
 use Score;
 use Solve;
 
+use std::ops::{Index, IndexMut};
+
 const DIMENSIONS: usize = 2; // We may allow changing this later.
 
 /// Represents a single sudoku "square."
@@ -96,7 +98,60 @@ pub struct Sudoku {
 /// corner, with increasing x to the right and increasing y downward.
 ///
 /// Additional axes (if applicable) follow the right-hand rule.
-pub type Point = [u8; DIMENSIONS];
+#[derive(Copy, Clone, Debug, PartialEq)]
+pub struct Point([u8; DIMENSIONS]);
+impl Point {
+    /// Compresses an *n*-dimensional point to a single coordinate.
+    ///
+    /// Inverse of [`Point::unfold`](#method.unfold).
+    pub fn fold(&self, order: u8) -> usize {
+        let axis = (order as usize).pow(2);
+        let mut sum = 0;
+        for i in 0..DIMENSIONS {
+            sum += (self[i] as usize) * axis.pow(i as u32);
+        }
+        sum
+    }
+
+    /// Decompresses a single coordinate into an *n*-dimensional point.
+    ///
+    /// Inverse of [`Point::fold`](#method.fold).
+    pub fn unfold(value: usize, order: u8) -> Self {
+        let mut total = value;
+        let axis = (order as usize).pow(2);
+        let mut point = [0; DIMENSIONS];
+        for i in 0..DIMENSIONS {
+            let j = DIMENSIONS - i - 1;
+            let discriminant = axis.pow(j as u32);
+            let dim = total / discriminant;
+            point[j] = dim as u8;
+            total = total % discriminant;
+        }
+        Point(point)
+    }
+
+    /// Snaps a point to the grid (returns the upper-left corner of the box).
+    pub fn snap(self, order: u8) -> Self {
+        let mut point = self;
+        for i in 0..DIMENSIONS {
+            point[i] = self[i] - self[i] % order;
+        }
+        point
+    }
+}
+
+impl Index<usize> for Point {
+    type Output = u8;
+    fn index(&self, index: usize) -> &Self::Output {
+        &self.0[index]
+    }
+}
+
+impl IndexMut<usize> for Point {
+    fn index_mut(&mut self, index: usize) -> &mut u8 {
+        &mut self.0[index]
+    }
+}
 
 impl Sudoku {
     /// Constructs a new sudoku of the specified order.
@@ -147,7 +202,7 @@ impl Generate for Sudoku {}
 
 #[cfg(test)]
 mod tests {
-    use sudoku::{Element, Group, Sudoku};
+    use sudoku::{Element, Group, Point, Sudoku};
     use Puzzle;
 
     // TODO: Procedural macro-ify these tests
@@ -156,28 +211,28 @@ mod tests {
     #[should_panic]
     fn test_sudoku_groups_index_x_3() {
         let sudoku = Sudoku::new(3);
-        let _ = sudoku.groups([9, 0]);
+        let _ = sudoku.groups(Point([9, 0]));
     }
 
     #[test]
     #[should_panic]
     fn test_sudoku_groups_index_y_3() {
         let sudoku = Sudoku::new(3);
-        let _ = sudoku.groups([0, 9]);
+        let _ = sudoku.groups(Point([0, 9]));
     }
 
     #[test]
     #[should_panic]
     fn test_sudoku_groups_index_x_4() {
         let sudoku = Sudoku::new(4);
-        let _ = sudoku.groups([16, 0]);
+        let _ = sudoku.groups(Point([16, 0]));
     }
 
     #[test]
     #[should_panic]
     fn test_sudoku_groups_index_y_4() {
         let sudoku = Sudoku::new(4);
-        let _ = sudoku.groups([0, 16]);
+        let _ = sudoku.groups(Point([0, 16]));
     }
 
     #[test]
@@ -219,6 +274,61 @@ mod tests {
         for order in 1..10 {
             let sudoku = Sudoku::new(order);
             assert_eq!(sudoku.order(), order);
+        }
+    }
+
+    #[test]
+    fn test_point_compose() {
+        for i in 0..9 {
+            for j in 0..9 {
+                let point = Point([i, j]);
+                assert_eq!(point, Point::unfold(point.fold(3), 3));
+            }
+        }
+    }
+
+    #[test]
+    fn test_point_index() {
+        for i in 0..9 {
+            for j in 0..9 {
+                let point = Point([i, j]);
+                assert_eq!(point.0[0], point[0]);
+            }
+        }
+    }
+
+    #[test]
+    fn test_point_index_mut() {
+        for i in 0..9 {
+            for j in 0..9 {
+                let mut point = Point([i, j]);
+                point[0] = j;
+                point[1] = i;
+                assert_eq!(point[0], j);
+                assert_eq!(point[1], i);
+            }
+        }
+    }
+
+    #[test]
+    fn test_point_snap() {
+        for i in 0..9 {
+            for j in 0..9 {
+                let x = match i {
+                    0...2 => 0,
+                    3...5 => 3,
+                    6...8 => 6,
+                    _ => unreachable!(),
+                };
+                let y = match j {
+                    0...2 => 0,
+                    3...5 => 3,
+                    6...8 => 6,
+                    _ => unreachable!(),
+                };
+                let point = Point([i, j]);
+                assert_eq!(point.snap(3), Point([x, y]));
+            }
         }
     }
 }
