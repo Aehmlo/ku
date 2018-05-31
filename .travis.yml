@@ -13,3 +13,4 @@ script:
   - test "${TRAVIS_RUST_VERSION//./_}" != "nightly" || cargo fmt --all -- --check
   - cargo build --verbose
   - cargo test --verbose
+  - cargo test --no-default-features --features 3D --verbose
