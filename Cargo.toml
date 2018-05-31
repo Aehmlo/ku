@@ -14,7 +14,7 @@ travis-ci = { repository = "Aehmlo/ku", branch = "master" }
 maintenance = { status = "actively-developed" }
 
 [[bin]]
-name = "sugen"
+name = "ku"
 path = "src/main.rs"
 
 [lib]
