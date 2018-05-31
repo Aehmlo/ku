@@ -143,6 +143,33 @@ impl Point {
         }
         point
     }
+
+    /// Creates a point with the given x-coordinate and all other coordinates zero.
+    pub fn with_x(value: u8) -> Self {
+        let mut point = [0; DIMENSIONS];
+        point[0] = value;
+        Point(point)
+    }
+
+    /// Creates a point with the given y-coordinate and all other coordinates zero.
+    pub fn with_y(value: u8) -> Self {
+        let mut point = [0; DIMENSIONS];
+        point[1] = value;
+        Point(point)
+    }
+
+    #[cfg(feature = "3D")]
+    /// Creates a point with the given z-coordinate and all other coordinates zero.
+    pub fn with_z(value: u8) -> Self {
+        let mut point = [0; DIMENSIONS];
+        point[2] = value;
+        Point(point)
+    }
+
+    /// The point with all coordinates identically zero.
+    pub fn origin() -> Self {
+        Point([0; DIMENSIONS])
+    }
 }
 
 impl Index<usize> for Point {
@@ -187,7 +214,7 @@ impl Sudoku {
     pub fn new(order: u8) -> Self {
         Self {
             order,
-            elements: vec![None; (order as usize).pow(4)],
+            elements: vec![None; (order as usize).pow(2 + DIMENSIONS as u32)],
         }
     }
 
@@ -280,7 +307,7 @@ impl Sudoku {
 
 impl Grid for Sudoku {
     fn points(&self) -> Vec<Point> {
-        (0..(self.order as usize).pow(2 * DIMENSIONS as u32))
+        (0..(self.order as usize).pow(2 + DIMENSIONS as u32))
             .map(|p| Point::unfold(p, self.order))
             .collect()
     }
@@ -324,11 +351,11 @@ impl Score for Sudoku {
 
 impl Generate for Sudoku {}
 
+#[cfg(feature = "2D")]
 impl fmt::Display for Sudoku {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
         let order = self.order;
         let axis = order.pow(2);
-        // TODO: Higher dimensions
         for y in 0..axis {
             for x in 0..axis {
                 let element = self[Point([x, y])];
@@ -363,6 +390,8 @@ pub enum ParseError {
     NonSquareAxis,
 }
 
+// TODO: Higher dimensions
+#[cfg(feature = "2D")]
 impl FromStr for Sudoku {
     type Err = ParseError;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
@@ -411,6 +440,7 @@ impl FromStr for Sudoku {
 mod tests {
     use sudoku::{Element, Group, Point, Sudoku};
     use Puzzle;
+    use DIMENSIONS;
 
     // TODO: Procedural macro-ify these tests
     // TODO: Implement positive tests for Sudoku::groups
@@ -418,35 +448,35 @@ mod tests {
     #[should_panic]
     fn test_sudoku_groups_index_x_3() {
         let sudoku = Sudoku::new(3);
-        let _ = sudoku.groups(Point([9, 0]));
+        let _ = sudoku.groups(Point::with_x(9));
     }
 
     #[test]
     #[should_panic]
     fn test_sudoku_groups_index_y_3() {
         let sudoku = Sudoku::new(3);
-        let _ = sudoku.groups(Point([0, 9]));
+        let _ = sudoku.groups(Point::with_y(9));
     }
 
     #[test]
     #[should_panic]
     fn test_sudoku_groups_index_x_4() {
         let sudoku = Sudoku::new(4);
-        let _ = sudoku.groups(Point([16, 0]));
+        let _ = sudoku.groups(Point::with_x(16));
     }
 
     #[test]
     #[should_panic]
     fn test_sudoku_groups_index_y_4() {
         let sudoku = Sudoku::new(4);
-        let _ = sudoku.groups(Point([0, 16]));
+        let _ = sudoku.groups(Point::with_y(16));
     }
 
     #[test]
     fn test_sudoku_groups_length_3_2d() {
         let sudoku = Sudoku::new(3);
-        let groups = sudoku.groups(Point([0, 0]));
-        assert_eq!(groups[0].elements().len(), 9);
+        let groups = sudoku.groups(Point::origin());
+        assert_eq!(groups[0].elements().len(), 3_usize.pow(DIMENSIONS as u32));
         assert_eq!(groups[1].elements().len(), 9);
         assert_eq!(groups[2].elements().len(), 9);
     }
@@ -454,8 +484,8 @@ mod tests {
     #[test]
     fn test_sudoku_groups_length_4_2d() {
         let sudoku = Sudoku::new(4);
-        let groups = sudoku.groups(Point([0, 0]));
-        assert_eq!(groups[0].elements().len(), 16);
+        let groups = sudoku.groups(Point::origin());
+        assert_eq!(groups[0].elements().len(), 4_usize.pow(DIMENSIONS as u32));
         assert_eq!(groups[1].elements().len(), 16);
         assert_eq!(groups[2].elements().len(), 16);
     }
@@ -464,7 +494,7 @@ mod tests {
     fn test_sudoku_new() {
         for order in 2..10usize {
             let sudoku = Sudoku::new(order as u8);
-            assert_eq!(sudoku.elements.capacity(), order.pow(4));
+            assert_eq!(sudoku.elements.capacity(), order.pow(2 + DIMENSIONS as u32));
         }
     }
 
@@ -502,7 +532,8 @@ mod tests {
         }
     }
 
-    #[test]
+    #[cfg_attr(feature = "2D", test)]
+    #[cfg(feature = "2D")]
     fn test_point_compose() {
         for i in 0..9 {
             for j in 0..9 {
@@ -512,7 +543,8 @@ mod tests {
         }
     }
 
-    #[test]
+    #[cfg_attr(feature = "2D", test)]
+    #[cfg(feature = "2D")]
     fn test_point_index() {
         for i in 0..9 {
             for j in 0..9 {
@@ -522,7 +554,8 @@ mod tests {
         }
     }
 
-    #[test]
+    #[cfg_attr(feature = "2D", test)]
+    #[cfg(feature = "2D")]
     fn test_point_index_mut() {
         for i in 0..9 {
             for j in 0..9 {
@@ -535,7 +568,8 @@ mod tests {
         }
     }
 
-    #[test]
+    #[cfg_attr(feature = "2D", test)]
+    #[cfg(feature = "2D")]
     fn test_point_snap() {
         for i in 0..9 {
             for j in 0..9 {
@@ -557,7 +591,8 @@ mod tests {
         }
     }
     #[cfg_attr(rustfmt, rustfmt_skip)]
-    #[test]
+    #[cfg_attr(feature = "2D", test)]
+    #[cfg(feature = "2D")]
     fn test_sudoku_from_str() {
         let possible = [
             include_str!("../tests/sudokus/solvable/2D-O3.txt"),
@@ -578,7 +613,8 @@ mod tests {
     }
 
     #[cfg_attr(rustfmt, rustfmt_skip)]
-    #[test]
+    #[cfg_attr(feature = "2D", test)]
+    #[cfg(feature = "2D")]
     fn test_sudoku_from_str_parse_compose() {
         let s = include_str!("../tests/sudokus/solvable/2D-O3.txt");
         let puzzle = s.parse::<Sudoku>();

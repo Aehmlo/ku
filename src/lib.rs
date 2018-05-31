@@ -6,6 +6,7 @@
     unused_results
 )]
 
+mod dimensions;
 mod gen;
 mod puzzle;
 mod sol;
@@ -16,5 +17,4 @@ pub use puzzle::Puzzle;
 pub use sol::{Difficulty, Score, Solve};
 pub use sudoku::{Element, Group, Point, Sudoku};
 
-/// The number of dimensions in which all sudoku methods will operate.
-pub const DIMENSIONS: usize = 2; // We may allow changing this later.
+pub use dimensions::DIMENSIONS;

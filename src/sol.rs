@@ -132,7 +132,7 @@ impl PossibilityMap {
         Self {
             possibilities: vec![
                 Some(PossibilitySet::new(order));
-                (order as usize).pow(2 * DIMENSIONS as u32)
+                (order as usize).pow(2 + DIMENSIONS as u32)
             ],
             order,
         }
@@ -188,7 +188,7 @@ impl IndexMut<Point> for PossibilityMap {
 
 impl Grid for PossibilityMap {
     fn points(&self) -> Vec<Point> {
-        (0..(self.order as usize).pow(2 * DIMENSIONS as u32))
+        (0..(self.order as usize).pow(2 + DIMENSIONS as u32))
             .map(|p| Point::unfold(p, self.order))
             .collect()
     }
@@ -198,7 +198,7 @@ impl From<Sudoku> for PossibilityMap {
     fn from(sudoku: Sudoku) -> Self {
         let order = sudoku.order;
         let mut map = PossibilityMap::new(order);
-        for i in 0..(sudoku.order as usize).pow(2 * DIMENSIONS as u32) {
+        for i in 0..(sudoku.order as usize).pow(2 + DIMENSIONS as u32) {
             let point = Point::unfold(i, order);
             if sudoku[point].is_some() {
                 map[point] = None;
@@ -390,7 +390,7 @@ mod tests {
     fn test_map_new() {
         for order in 1..6 {
             let map = PossibilityMap::new(order);
-            for i in 0..(order as usize).pow(DIMENSIONS as u32 * 2) {
+            for i in 0..(order as usize).pow(DIMENSIONS as u32 + 2) {
                 let index = Point::unfold(i, order);
                 let set = PossibilitySet::new(order);
                 assert_eq!(map[index], Some(set));
