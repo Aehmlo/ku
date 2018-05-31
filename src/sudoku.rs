@@ -227,9 +227,7 @@ impl Sudoku {
             assert!(pos[i] < self.order.pow(2));
         }
         let top_left = pos.snap(self.order);
-        let left = top_left.fold(self.order);
-        let order = self.order as usize;
-        let axis = order.pow(2);
+        let order = self.order as i32;
         let points = self.points();
         let b = points
             .iter()
@@ -239,7 +237,7 @@ impl Sudoku {
                 let x = index[0];
                 let dy = y as i32 - top_left[1] as i32;
                 let dx = x as i32 - top_left[0] as i32;
-                if dy < 0 || dx < 0 || dy >= self.order as i32 || dx >= self.order as i32 {
+                if dy < 0 || dx < 0 || dy >= order || dx >= order {
                     return false;
                 }
                 true

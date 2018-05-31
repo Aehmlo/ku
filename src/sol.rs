@@ -105,15 +105,6 @@ impl PossibilitySet {
             _ => Some(Self { values }),
         }
     }
-    /// Whether the set contains the given value.
-    pub fn contains(&self, value: usize) -> bool {
-        let len = self.values.len();
-        self.values
-            .iter()
-            .filter(|v| v != &&value)
-            .collect::<Vec<_>>()
-            .len() != len
-    }
     /// The number of possible values in this set.
     pub fn freedom(&self) -> usize {
         self.values.len()
