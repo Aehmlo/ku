@@ -66,7 +66,7 @@ pub trait Solve: Sized {
 /// Trait defining a puzzle with quantifiable difficulty.
 pub trait Score: Solve {
     /// The raw difficulty score of this puzzle.
-    fn score(&self) -> Option<u16>;
+    fn score(&self) -> Option<usize>;
     /// The graded difficulty score of this puzzle.
     fn difficulty(&self) -> Option<Difficulty> {
         use self::Difficulty::*;
@@ -222,6 +222,10 @@ impl From<Sudoku> for PossibilityMap {
 }
 
 pub fn solve(puzzle: &Sudoku) -> Result<Sudoku, Error> {
+    solve_and_score(puzzle).map(|(sol, _)| sol)
+}
+
+pub fn solve_and_score(puzzle: &Sudoku) -> Result<(Sudoku, usize), Error> {
     let mut context = Context {
         problem: puzzle.clone(),
         count: 0,
@@ -229,17 +233,23 @@ pub fn solve(puzzle: &Sudoku) -> Result<Sudoku, Error> {
         branch_score: 0,
     };
     recurse(&mut context, 0);
-    context.solution.ok_or(Error::Unknown)
+    let s = context.branch_score;
+    let c = calculate_c(puzzle) as isize;
+    let e = count_empty(puzzle) as isize;
+    context
+        .solution
+        .ok_or(Error::Unknown)
+        .map(|sol| (sol, (s * c + e) as usize))
 }
 
 struct Context {
     problem: Sudoku,
     count: usize,
     solution: Option<Sudoku>,
-    branch_score: usize,
+    branch_score: isize,
 }
 
-fn recurse(mut context: &mut Context, difficulty: usize) {
+fn recurse(mut context: &mut Context, difficulty: isize) {
     let problem = context.problem.clone();
     let map: PossibilityMap = problem.into();
     match map.next_index() {
@@ -254,17 +264,15 @@ fn recurse(mut context: &mut Context, difficulty: usize) {
         }
         Some(index) => {
             let set = map[index].clone().unwrap();
-            let branch_factor = set.freedom();
+            let branch_factor = set.freedom() as isize - 1;
             let possible = set.values;
+            let difficulty = difficulty + branch_factor.pow(DIMENSIONS as u32);
             for value in possible {
                 let problem = context
                     .problem
                     .substitute(index, Some(Element(value as u8)));
                 context.problem = problem;
-                recurse(
-                    &mut context,
-                    difficulty + branch_factor.pow(DIMENSIONS as u32),
-                );
+                recurse(&mut context, difficulty);
                 if context.count > 1 {
                     // There are multiple solutions; abort.
                     return;
@@ -275,28 +283,33 @@ fn recurse(mut context: &mut Context, difficulty: usize) {
     }
 }
 
-mod calc {
-    use Puzzle;
-    use Sudoku;
+/// Returns the number of empty cells in the passed sudoku.
+///
+/// Useful for scoring difficulty (see [Scoring](#Scoring)).
+fn count_empty(sudoku: &Sudoku) -> usize {
+    sudoku
+        .elements
+        .clone()
+        .iter()
+        .filter(|e| e.is_none())
+        .count()
+}
 
-    /// Calculates the value of `C`, as discussed in [Scoring](#Scoring).
-    pub fn c(sudoku: &Sudoku) -> usize {
-        let order = sudoku.order();
-        10.0_f64.powf((order as f64).powf(4.0).log10().ceil()) as usize
-    }
+/// Calculates the value of `C`, as discussed in [Scoring](#Scoring).
+fn calculate_c(sudoku: &Sudoku) -> usize {
+    let order = sudoku.order;
+    10.0_f64.powf((order as f64).powf(4.0).log10().ceil()) as usize
+}
 
-    /// Calculates the value of `D`, as discussed in [Scoring](#Scoring).
-    pub fn difficulty(s: usize, c: usize, e: usize) -> usize {
-        s * c + e
-    }
+/// Scores the passed, if it's solvable.
+pub fn score(sudoku: &Sudoku) -> Option<usize> {
+    solve_and_score(&sudoku).ok().map(|(_, s)| s)
 }
 
 #[cfg(test)]
 mod tests {
 
-    use sol::{
-        calc::{c, difficulty}, Difficulty, Error, PossibilityMap, PossibilitySet, Score, Solve,
-    };
+    use sol::{calculate_c, Difficulty, Error, PossibilityMap, PossibilitySet, Score, Solve};
     use Point;
     use Sudoku;
     use DIMENSIONS;
@@ -328,7 +341,7 @@ mod tests {
     }
 
     struct DifficultyDummyPuzzle {
-        difficulty: u16,
+        difficulty: usize,
     }
 
     impl Solve for DifficultyDummyPuzzle {
@@ -338,7 +351,7 @@ mod tests {
     }
 
     impl Score for DifficultyDummyPuzzle {
-        fn score(&self) -> Option<u16> {
+        fn score(&self) -> Option<usize> {
             Some(self.difficulty)
         }
     }
@@ -366,24 +379,13 @@ mod tests {
     #[test]
     fn test_calculate_c() {
         let sudoku = Sudoku::new(3);
-        assert_eq!(c(&sudoku), 100);
+        assert_eq!(calculate_c(&sudoku), 100);
         let sudoku = Sudoku::new(4);
-        assert_eq!(c(&sudoku), 1_000);
+        assert_eq!(calculate_c(&sudoku), 1_000);
         let sudoku = Sudoku::new(5);
-        assert_eq!(c(&sudoku), 1_000);
+        assert_eq!(calculate_c(&sudoku), 1_000);
         let sudoku = Sudoku::new(6);
-        assert_eq!(c(&sudoku), 10_000);
-    }
-
-    #[test]
-    fn test_calculate_difficulty() {
-        for s in 0..70 {
-            for c in 2..5 {
-                for e in 0..50 {
-                    assert_eq!(difficulty(s, 10usize.pow(c), e), s * 10usize.pow(c) + e);
-                }
-            }
-        }
+        assert_eq!(calculate_c(&sudoku), 10_000);
     }
 
     #[test]

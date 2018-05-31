@@ -1,4 +1,4 @@
-use sol::{solve, Error as SolveError};
+use sol::{score, solve, Error as SolveError};
 use Generate;
 use Puzzle;
 use Score;
@@ -344,8 +344,8 @@ impl Solve for Sudoku {
 }
 
 impl Score for Sudoku {
-    fn score(&self) -> Option<u16> {
-        unimplemented!()
+    fn score(&self) -> Option<usize> {
+        score(self)
     }
 }
 
