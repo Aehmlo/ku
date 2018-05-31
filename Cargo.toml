@@ -23,6 +23,7 @@ path = "src/lib.rs"
 
 [dependencies]
 rand = "0.4.2"
+clap = "2.31.2"
 
 [features]
 default = ["2D"]

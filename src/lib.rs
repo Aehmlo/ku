@@ -14,7 +14,7 @@ mod sudoku;
 
 pub use gen::Generate;
 pub use puzzle::Puzzle;
-pub use sol::{Difficulty, Score, Solve};
-pub use sudoku::{Element, Group, Point, Sudoku};
+pub use sol::{Difficulty, Error as SolveError, Score, Solve};
+pub use sudoku::{Element, Group, ParseError, Point, Sudoku};
 
 pub use dimensions::DIMENSIONS;
