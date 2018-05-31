@@ -15,3 +15,6 @@ pub use gen::Generate;
 pub use puzzle::Puzzle;
 pub use sol::{Difficulty, Score, Solve};
 pub use sudoku::{Element, Group, Point, Sudoku};
+
+/// The number of dimensions in which all sudoku methods will operate.
+pub const DIMENSIONS: usize = 2; // We may allow changing this later.

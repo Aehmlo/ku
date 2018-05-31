@@ -3,12 +3,11 @@ use Generate;
 use Puzzle;
 use Score;
 use Solve;
+use DIMENSIONS;
 
 use std::{
     fmt, ops::{Index, IndexMut}, str::FromStr,
 };
-
-const DIMENSIONS: usize = 2; // We may allow changing this later.
 
 /// Represents a single sudoku "square."
 ///

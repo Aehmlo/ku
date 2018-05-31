@@ -20,7 +20,9 @@
 //! ## Tabulation
 //! The final difficulty score is given by `D = S * C + E`, where `C` is the first power of 10
 //! greater than the number of elements and `E` is the number of empty elements.
+use Element;
 use Sudoku;
+use DIMENSIONS;
 
 /// Represents the difficulty of a puzzle.
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -102,6 +104,7 @@ mod tests {
         calc::{c, difficulty}, Difficulty, Error, Score, Solve,
     };
     use Sudoku;
+    use DIMENSIONS;
 
     struct DummyPuzzle(bool);
 
