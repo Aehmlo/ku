@@ -20,9 +20,13 @@
 //! ## Tabulation
 //! The final difficulty score is given by `D = S * C + E`, where `C` is the first power of 10
 //! greater than the number of elements and `E` is the number of empty elements.
+use sudoku::Grid;
 use Element;
+use Point;
 use Sudoku;
 use DIMENSIONS;
+
+use std::ops::{Index, IndexMut};
 
 /// Represents the difficulty of a puzzle.
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -43,6 +47,8 @@ pub enum Difficulty {
 #[derive(Clone, Debug)]
 #[allow(missing_copy_implementations)] // This is an error type.
 pub enum Error {
+    /// A mere placeholder; this will be replaced by proper errors in a future revision.
+    Unknown,
     #[doc(hidden)]
     __TestOther,
 }
@@ -74,11 +80,199 @@ pub trait Score: Solve {
     }
 }
 
+#[derive(Clone, Debug, PartialEq)]
+struct PossibilitySet {
+    values: Vec<usize>,
+}
+
+impl PossibilitySet {
+    /// Creates a new set full of possibilities.
+    pub fn new(order: u8) -> Self {
+        let values = (1..((order.pow(2) as usize) + 1)).collect();
+        Self { values }
+    }
+    /// Elminates the given possible value from the set and returns the result.
+    pub fn eliminate(&self, value: usize) -> Option<Self> {
+        // Don't bother checking for value; we'd clone almost all the values anyway.
+        let values = self
+            .values
+            .clone()
+            .into_iter()
+            .filter(|v| v != &value)
+            .collect::<Vec<_>>();
+        match values.len() {
+            0 => None,
+            _ => Some(Self { values }),
+        }
+    }
+    /// Whether the set contains the given value.
+    pub fn contains(&self, value: usize) -> bool {
+        let len = self.values.len();
+        self.values
+            .iter()
+            .filter(|v| v != &&value)
+            .collect::<Vec<_>>()
+            .len() != len
+    }
+    /// The number of possible values in this set.
+    pub fn freedom(&self) -> usize {
+        self.values.len()
+    }
+}
+
+#[derive(Debug)]
+struct PossibilityMap {
+    possibilities: Vec<Option<PossibilitySet>>,
+    order: u8,
+}
+
+impl PossibilityMap {
+    /// Constructs a blank possibilitiy map of the given order.
+    pub fn new(order: u8) -> Self {
+        Self {
+            possibilities: vec![
+                Some(PossibilitySet::new(order));
+                (order as usize).pow(2 * DIMENSIONS as u32)
+            ],
+            order,
+        }
+    }
+
+    /// Removes the given value from the set of possibilities at the given location.
+    // There's no way it's cheaper to reconstruct the map each time, so we make this mutating.
+    // TODO: Benchmark
+    pub fn eliminate(&mut self, index: Point, value: usize) {
+        let current = self[index].clone();
+        match current {
+            None => {}
+            Some(set) => {
+                self[index] = set.eliminate(value);
+            }
+        }
+    }
+
+    // Returns the next easiest index to solve.
+    pub fn next_index(&self) -> Option<Point> {
+        let mut best = None;
+        let mut best_index = None;
+        for index in self.points() {
+            if let Some(ref element) = self[index] {
+                if best.is_none() {
+                    best = Some(element.freedom());
+                    best_index = Some(index);
+                } else if best.unwrap() > element.freedom() {
+                    best = Some(element.freedom());
+                    best_index = Some(index);
+                }
+            }
+        }
+        best_index
+    }
+}
+
+impl Index<Point> for PossibilityMap {
+    type Output = Option<PossibilitySet>;
+
+    fn index(&self, index: Point) -> &Self::Output {
+        let index = index.fold(self.order);
+        &self.possibilities[index]
+    }
+}
+
+impl IndexMut<Point> for PossibilityMap {
+    fn index_mut(&mut self, index: Point) -> &mut Option<PossibilitySet> {
+        let index = index.fold(self.order);
+        &mut self.possibilities[index]
+    }
+}
+
+impl Grid for PossibilityMap {
+    fn points(&self) -> Vec<Point> {
+        (0..(self.order as usize).pow(2 * DIMENSIONS as u32))
+            .map(|p| Point::unfold(p, self.order))
+            .collect()
+    }
+}
+
+impl From<Sudoku> for PossibilityMap {
+    fn from(sudoku: Sudoku) -> Self {
+        let order = sudoku.order;
+        let mut map = PossibilityMap::new(order);
+        for i in 0..(sudoku.order as usize).pow(2 * DIMENSIONS as u32) {
+            let point = Point::unfold(i, order);
+            if sudoku[point].is_some() {
+                map[point] = None;
+            } else {
+                let groups = sudoku.groups(point);
+                for group in groups.iter() {
+                    let elements = group.elements();
+                    for element in elements {
+                        match element {
+                            Some(Element(value)) => {
+                                map.eliminate(point, value as usize);
+                            }
+                            None => {}
+                        }
+                    }
+                }
+            }
+        }
+        map
+    }
+}
+
+pub fn solve(puzzle: &Sudoku) -> Result<Sudoku, Error> {
+    let mut context = Context {
+        problem: puzzle.clone(),
+        count: 0,
+        solution: None,
+        branch_score: 0,
+    };
+    recurse(&mut context, 0);
+    context.solution.ok_or(Error::Unknown)
+}
+
 struct Context {
     problem: Sudoku,
     count: usize,
     solution: Option<Sudoku>,
     branch_score: usize,
+}
+
+fn recurse(mut context: &mut Context, difficulty: usize) {
+    let problem = context.problem.clone();
+    let map: PossibilityMap = problem.into();
+    match map.next_index() {
+        None => {
+            // We're done! Stash the solution and return.
+            if context.count == 0 {
+                context.branch_score = difficulty;
+                context.solution = Some(context.problem.clone());
+            }
+            context.count += 1;
+            return;
+        }
+        Some(index) => {
+            let set = map[index].clone().unwrap();
+            let branch_factor = set.freedom();
+            let possible = set.values;
+            for value in possible {
+                let problem = context
+                    .problem
+                    .substitute(index, Some(Element(value as u8)));
+                context.problem = problem;
+                recurse(
+                    &mut context,
+                    difficulty + branch_factor.pow(DIMENSIONS as u32),
+                );
+                if context.count > 1 {
+                    // There are multiple solutions; abort.
+                    return;
+                }
+            }
+            context.problem = context.problem.substitute(index, None);
+        }
+    }
 }
 
 mod calc {
@@ -101,8 +295,9 @@ mod calc {
 mod tests {
 
     use sol::{
-        calc::{c, difficulty}, Difficulty, Error, Score, Solve,
+        calc::{c, difficulty}, Difficulty, Error, PossibilityMap, PossibilitySet, Score, Solve,
     };
+    use Point;
     use Sudoku;
     use DIMENSIONS;
 
@@ -188,6 +383,28 @@ mod tests {
                     assert_eq!(difficulty(s, 10usize.pow(c), e), s * 10usize.pow(c) + e);
                 }
             }
+        }
+    }
+
+    #[test]
+    fn test_map_new() {
+        for order in 1..6 {
+            let map = PossibilityMap::new(order);
+            for i in 0..(order as usize).pow(DIMENSIONS as u32 * 2) {
+                let index = Point::unfold(i, order);
+                let set = PossibilitySet::new(order);
+                assert_eq!(map[index], Some(set));
+            }
+        }
+    }
+
+    #[test]
+    fn test_map_from_sudoku() {
+        // TODO: More cases
+        let sudoku = Sudoku::new(3);
+        let map: PossibilityMap = sudoku.into();
+        for p in map.possibilities {
+            assert_eq!(p, Some(PossibilitySet::new(3)));
         }
     }
 }

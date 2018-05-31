@@ -1,4 +1,4 @@
-use sol::Error as SolveError;
+use sol::{solve, Error as SolveError};
 use Generate;
 use Puzzle;
 use Score;
@@ -13,11 +13,10 @@ use std::{
 ///
 /// The quantum of the sudoku.
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
-pub struct Element(u8);
+pub struct Element(pub u8);
 
-/// A subdivision of the main sudoku; the smallest grouping to which rules are
-/// applied.
-#[derive(Debug)]
+/// A subdivision of the main sudoku; the smallest grouping to which rules are applied.
+#[derive(Clone, Debug)]
 pub enum Group {
     /// A square set of [elements](struct.Element.html).
     ///
@@ -62,7 +61,6 @@ impl Group {
     /// value exactly once.
     fn is_complete(&self) -> bool {
         let elements = self.elements();
-        let elements = elements.iter().filter(|e| e.is_some()).collect::<Vec<_>>();
         let len = elements.len();
         let mut elements = elements
             .into_iter()
@@ -73,7 +71,7 @@ impl Group {
         elements.len() == len
     }
     /// Returns an owned copy of the group's constituent elements.
-    fn elements(&self) -> Vec<Option<Element>> {
+    pub fn elements(&self) -> Vec<Option<Element>> {
         use self::Group::*;
         match self {
             Box(elements) | Stack(elements) | Band(elements) => elements.clone(),
@@ -81,11 +79,17 @@ impl Group {
     }
 }
 
-#[derive(Debug, PartialEq)]
+impl Default for Group {
+    fn default() -> Self {
+        Group::Box(vec![])
+    }
+}
+
+#[derive(Clone, Debug, PartialEq)]
 /// A (partial) grid of [elements](struct.Element.html).
 pub struct Sudoku {
     /// The [order](trait.Puzzle.html#method.order) of this sudoku.
-    order: u8,
+    pub order: u8,
     /// The [elements](struct.Element.html) composing this sudoku.
     pub elements: Vec<Option<Element>>,
 }
@@ -154,6 +158,23 @@ impl IndexMut<usize> for Point {
     }
 }
 
+impl fmt::Display for Point {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+        write!(f, "(")?;
+        for i in 0..DIMENSIONS - 1 {
+            write!(f, "{}, ", self[i])?;
+        }
+        write!(f, "{})", self[DIMENSIONS - 1])
+    }
+}
+
+pub trait Grid: Index<Point> {
+    /// Returns all points in the grid.
+    ///
+    /// Useful for enumeration with `Iterator::zip`.
+    fn points(&self) -> Vec<Point>;
+}
+
 impl Sudoku {
     /// Constructs a new sudoku of the specified order.
     ///
@@ -166,7 +187,7 @@ impl Sudoku {
     pub fn new(order: u8) -> Self {
         Self {
             order,
-            elements: Vec::with_capacity((order as usize).pow(4)),
+            elements: vec![None; (order as usize).pow(4)],
         }
     }
 
@@ -175,10 +196,105 @@ impl Sudoku {
     /// The number of groups is always equal to the number of dimensions plus
     /// one.
     pub fn groups(&self, pos: Point) -> [Group; DIMENSIONS + 1] {
-        assert!(pos[0] < self.order.pow(2));
-        assert!(pos[1] < self.order.pow(2));
-        unimplemented!()
+        for i in 0..DIMENSIONS {
+            assert!(pos[i] < self.order.pow(2));
+        }
+        let top_left = pos.snap(self.order);
+        let left = top_left.fold(self.order);
+        let order = self.order as usize;
+        let axis = order.pow(2);
+        let points = self.points();
+        let b = points
+            .iter()
+            .zip(self.elements.iter())
+            .filter(|(index, _)| {
+                let y = index[1];
+                let x = index[0];
+                let dy = y as i32 - top_left[1] as i32;
+                let dx = x as i32 - top_left[0] as i32;
+                if dy < 0 || dx < 0 || dy >= self.order as i32 || dx >= self.order as i32 {
+                    return false;
+                }
+                true
+            })
+            .map(|(_, v)| v.clone())
+            .collect::<Vec<_>>();
+        let b = Group::Box(b);
+
+        let s = points
+            .iter()
+            .zip(self.elements.iter())
+            .filter(|(index, _)| {
+                if index[0] != pos[0] {
+                    return false;
+                }
+                for i in 2..DIMENSIONS {
+                    if index[i] != pos[i] {
+                        return false;
+                    }
+                }
+                true
+            })
+            .map(|(_, v)| v.clone())
+            .collect::<Vec<_>>();
+        let s = Group::Stack(s);
+        let bands = (1..DIMENSIONS)
+            .map(|i| {
+                // The variant dimension
+                let dimension = i - 1;
+                points
+                    .iter()
+                    .zip(self.elements.iter())
+                    .filter(|(index, _)| {
+                        for j in 0..DIMENSIONS {
+                            if j == dimension {
+                                continue;
+                            }
+                            if pos[j] != index[j] {
+                                return false;
+                            }
+                        }
+                        true
+                    })
+                    .map(|(_, v)| v.clone())
+                    .collect()
+            })
+            .map(|v| Group::Band(v))
+            .collect::<Vec<_>>();
+        let mut g = bands;
+        g.insert(0, s);
+        g.insert(0, b);
+        // Here be dragons (not really, but update this when 1.27 gets stabilized)
+        clone_into_array(&g[..DIMENSIONS + 1])
     }
+
+    /// Places the specified value (or lack thereof) at the specified index,
+    /// returning an owned copy.
+    pub fn substitute(&self, index: Point, value: Option<Element>) -> Self {
+        let mut elements = self.elements.clone();
+        let order = self.order;
+        elements[index.fold(order)] = value;
+        Self { elements, order }
+    }
+}
+
+impl Grid for Sudoku {
+    fn points(&self) -> Vec<Point> {
+        (0..(self.order as usize).pow(2 * DIMENSIONS as u32))
+            .map(|p| Point::unfold(p, self.order))
+            .collect()
+    }
+}
+
+// https://stackoverflow.com/a/37682288
+fn clone_into_array<A, T>(slice: &[T]) -> A
+where
+    A: Default + AsMut<[T]>,
+    T: Clone,
+{
+    let mut a = Default::default();
+    <A as AsMut<[T]>>::as_mut(&mut a).clone_from_slice(slice);
+    a
 }
 
 impl Index<Point> for Sudoku {
@@ -196,7 +312,7 @@ impl Puzzle for Sudoku {
 
 impl Solve for Sudoku {
     fn solution(&self) -> Result<Self, SolveError> {
-        unimplemented!() // TODO: Find sudoku solutions
+        solve(self)
     }
 }
 
@@ -259,7 +375,6 @@ impl FromStr for Sudoku {
             })
             .collect::<Vec<_>>();
         let order = (rows.len() as f64).sqrt() as usize;
-        println!("Order: {}", order);
         if rows.len() == order * order + 1 {
             let last = rows.pop().unwrap();
             if last.len() != 1 || last[0] != None {
@@ -325,6 +440,24 @@ mod tests {
     fn test_sudoku_groups_index_y_4() {
         let sudoku = Sudoku::new(4);
         let _ = sudoku.groups(Point([0, 16]));
+    }
+
+    #[test]
+    fn test_sudoku_groups_length_3_2d() {
+        let sudoku = Sudoku::new(3);
+        let groups = sudoku.groups(Point([0, 0]));
+        assert_eq!(groups[0].elements().len(), 9);
+        assert_eq!(groups[1].elements().len(), 9);
+        assert_eq!(groups[2].elements().len(), 9);
+    }
+
+    #[test]
+    fn test_sudoku_groups_length_4_2d() {
+        let sudoku = Sudoku::new(4);
+        let groups = sudoku.groups(Point([0, 0]));
+        assert_eq!(groups[0].elements().len(), 16);
+        assert_eq!(groups[1].elements().len(), 16);
+        assert_eq!(groups[2].elements().len(), 16);
     }
 
     #[test]
@@ -427,112 +560,16 @@ mod tests {
     #[test]
     fn test_sudoku_from_str() {
         let possible = [
-            "_ _ _ _ _ _ _ _ _\n\
-            _ _ _ _ _ _ _ _ _\n\
-            _ _ _ _ _ _ _ _ _\n\
-            _ _ _ _ _ _ _ _ _\n\
-            _ _ _ _ _ _ _ _ _\n\
-            _ _ _ _ _ _ _ _ _\n\
-            _ _ _ _ _ _ _ _ _\n\
-            _ _ _ _ _ _ _ _ _\n\
-            _ _ _ _ _ _ _ _ _\n",
-            "_ _ _ _ 2 _ _ _ _\n\
-            _ _ _ _ _ 4 _ _ _\n\
-            _ _ _ _ _ _ _ _ _\n\
-            _ _ _ _ _ _ _ 9 _\n\
-            _ _ _ _ _ _ _ _ _\n\
-            _ _ _ _ _ _ _ _ _\n\
-            _ _ _ _ 7 _ _ _ _\n\
-            _ _ _ _ _ _ _ 4 _\n\
-            _ _ _ _ _ _ _ _ 1\n",
-            "_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\
-            _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\
-            _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\
-            _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\
-            _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\
-            _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\
-            _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\
-            _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\
-            _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\
-            _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\
-            _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\
-            _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\
-            _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\
-            _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\
-            _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\
-            _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n",
-            "_ _ _ _ 16 _ _ _ _ _ _ _ _ _ _ _\n\
-            _ 1 _ _ _ 4 _ _ _ _ _ _ _ _ _ _\n\
-            _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\
-            _ _ _ _ _ _ _ 9 _ _ _ _ _ _ _ _\n\
-            _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\
-            _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\
-            _ _ _ _ 7 _ _ _ _ _ _ _ _ _ _ _\n\
-            _ _ _ _ _ _ _ 4 _ _ _ _ _ _ _ _\n\
-            _ _ _ _ _ _ _ _ 1 _ _ _ _ _ _ _\n\
-            _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\
-            _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\
-            _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\
-            _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\
-            _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\
-            _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\
-            _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n",
+            include_str!("../tests/sudokus/solvable/2D-O3.txt"),
+            include_str!("../tests/sudokus/solvable/2D-O4.txt"),
         ];
         for s in possible.iter() {
             let puzzle = s.parse::<Sudoku>();
             assert!(puzzle.is_ok());
         }
         let impossible = [
-            "_ _ _ _ _ _ _ _ _\n\
-            _ _ _ _ _ _ _ _ _\n\
-            _ _ _ _ _ _ _ _ _\n\
-            _ _ _ _ _ _ _ _ _\n\
-            _ _ _ _ _ _ _ _ _\n\
-            _ _ _ _ _ _ _ _ _ _\n\
-            _ _ _ _ _ _ _ _ _\n\
-            _ _ _ _ _ _ _ _ _\n\
-            _ _ _ _ _ _ _ _ _\n",
-            "_ _ _ _ 2 _ _ 10 _\n\
-            _ _ _ _ _ 4 _ _ _\n\
-            _ _ _ _ _ _ _ _ _\n\
-            _ _ _ _ _ _ _ 9 _\n\
-            _ _ _ _ _ _ _ _ _\n\
-            _ _ _ _ _ _ _ _ _\n\
-            _ _ _ _ 7 _ _ _ _\n\
-            _ _ _ _ _ _ _ 4 _\n\
-            _ _ _ _ _ _ _ _ 1\n",
-            "_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\
-            _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\
-            _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\
-            _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\
-            _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\
-            _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\
-            _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\
-            _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\
-            _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\
-            _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\
-            _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\
-            _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\
-            _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\
-            _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\
-            _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\
-            _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n",
-            "_ _ _ _ 17 _ _ _ _ _ _ _ _ _ _ _\n\
-            _ 1 _ _ _ 4 _ _ _ _ _ _ _ _ _ _\n\
-            _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\
-            _ _ _ _ _ _ _ 9 _ _ _ 23 _ _ _ _\n\
-            _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\
-            _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\
-            _ _ _ _ 7 _ _ _ _ _ _ _ _ _ _ _\n\
-            _ _ _ _ _ _ _ 4 _ _ _ _ _ _ _ _\n\
-            _ _ _ _ _ _ _ _ 1 _ _ _ _ _ _ _\n\
-            _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\
-            _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\
-            _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\
-            _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\
-            _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\
-            _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\
-            _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n",
+            include_str!("../tests/sudokus/invalid/2D-O3.txt"),
+            include_str!("../tests/sudokus/invalid/2D-O4.txt"),
         ];
         for s in impossible.iter() {
             let puzzle = s.parse::<Sudoku>();
@@ -543,15 +580,7 @@ mod tests {
     #[cfg_attr(rustfmt, rustfmt_skip)]
     #[test]
     fn test_sudoku_from_str_parse_compose() {
-        let s = "_ _ _ _ _ _ _ _ _\n\
-                 _ _ _ _ _ _ _ _ _\n\
-                 _ _ _ _ _ _ _ _ _\n\
-                 _ _ _ _ _ _ _ _ _\n\
-                 _ _ _ _ _ _ _ _ _\n\
-                 _ _ _ _ _ _ _ _ _\n\
-                 _ _ _ _ _ _ _ _ _\n\
-                 _ _ _ _ _ _ _ _ _\n\
-                 _ _ _ _ _ _ _ _ _\n";
+        let s = include_str!("../tests/sudokus/solvable/2D-O3.txt");
         let puzzle = s.parse::<Sudoku>();
         assert!(puzzle.is_ok());
         assert_eq!(&format!("{}", puzzle.unwrap()), s);
