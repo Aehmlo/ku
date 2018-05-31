@@ -46,7 +46,7 @@ impl Group {
     ///
     /// A group is considered valid if it contains only unique elements
     /// (ignoring empty elements).
-    fn is_valid(&self) -> bool {
+    pub fn is_valid(&self) -> bool {
         let elements = self.elements();
         let elements = elements.iter().filter(|e| e.is_some()).collect::<Vec<_>>();
         let len = elements.len();
@@ -59,7 +59,7 @@ impl Group {
     ///
     /// A group is considered complete if it contains every possible element
     /// value exactly once.
-    fn is_complete(&self) -> bool {
+    pub fn is_complete(&self) -> bool {
         let elements = self.elements();
         let len = elements.len();
         let mut elements = elements
