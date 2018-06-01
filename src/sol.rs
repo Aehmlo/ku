@@ -133,31 +133,24 @@ impl PossibilityMap {
     // There's no way it's cheaper to reconstruct the map each time, so we make this mutating.
     // TODO(#10): Benchmark
     pub fn eliminate(&mut self, index: Point, value: usize) {
-        let current = self[index].clone();
-        match current {
-            None => {}
-            Some(set) => {
-                self[index] = set.eliminate(value);
-            }
-        }
+        self[index] = self[index].clone().and_then(|e| e.eliminate(value));
     }
 
-    // Returns the next easiest index to solve.
-    pub fn next_index(&self) -> Option<Point> {
+    // Returns the next easiest index to solve and its corresponding value.
+    pub fn next(&self) -> (Option<Point>, Option<PossibilitySet>) {
         let mut best = None;
         let mut best_index = None;
+        let mut best_score = None;
         for index in self.points() {
             if let Some(ref element) = self[index] {
-                if best.is_none() {
-                    best = Some(element.freedom());
+                if best_score.is_none() || best_score.unwrap() > element.freedom() {
+                    best = Some(element.clone());
                     best_index = Some(index);
-                } else if best.unwrap() > element.freedom() {
-                    best = Some(element.freedom());
-                    best_index = Some(index);
+                    best_score = Some(element.freedom());
                 }
             }
         }
-        best_index
+        (best_index, best)
     }
 }
 
@@ -243,8 +236,8 @@ struct Context {
 fn recurse(mut context: &mut Context, difficulty: isize) {
     let problem = context.problem.clone();
     let map: PossibilityMap = problem.into();
-    match map.next_index() {
-        None => {
+    match map.next() {
+        (None, _) => {
             if context.problem.is_complete() {
                 // We're done! Stash the solution and return.
                 if context.count == 0 {
@@ -255,8 +248,7 @@ fn recurse(mut context: &mut Context, difficulty: isize) {
             }
             return;
         }
-        Some(index) => {
-            let set = map[index].clone().unwrap();
+        (Some(index), Some(set)) => {
             let branch_factor = set.freedom() as isize - 1;
             let possible = set.values;
             let difficulty = difficulty + branch_factor.pow(DIMENSIONS as u32);
@@ -273,6 +265,7 @@ fn recurse(mut context: &mut Context, difficulty: isize) {
             }
             context.problem = context.problem.substitute(index, None);
         }
+        _ => unreachable!(),
     }
 }
 
@@ -282,10 +275,10 @@ fn recurse(mut context: &mut Context, difficulty: isize) {
 fn count_empty(sudoku: &Sudoku) -> usize {
     sudoku
         .elements
-        .clone()
         .iter()
         .filter(|e| e.is_none())
-        .count()
+        .collect::<Vec<_>>()
+        .len()
 }
 
 /// Calculates the value of `C`, as discussed in [Scoring](#Scoring).
