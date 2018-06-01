@@ -388,7 +388,7 @@ pub enum ParseError {
     NonSquareAxis,
 }
 
-// TODO: Higher dimensions
+// TODO((#7): Higher dimensions
 #[cfg(feature = "2D")]
 impl FromStr for Sudoku {
     type Err = ParseError;
@@ -440,8 +440,8 @@ mod tests {
     use Puzzle;
     use DIMENSIONS;
 
-    // TODO: Procedural macro-ify these tests
-    // TODO: Implement positive tests for Sudoku::groups
+    // TODO(#9): Procedural macro-ify these tests
+    // TODO(#8): Implement positive tests for Sudoku::groups
     #[test]
     #[should_panic]
     fn test_sudoku_groups_index_x_3() {

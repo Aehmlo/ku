@@ -131,7 +131,7 @@ impl PossibilityMap {
 
     /// Removes the given value from the set of possibilities at the given location.
     // There's no way it's cheaper to reconstruct the map each time, so we make this mutating.
-    // TODO: Benchmark
+    // TODO(#10): Benchmark
     pub fn eliminate(&mut self, index: Point, value: usize) {
         let current = self[index].clone();
         match current {
@@ -393,7 +393,7 @@ mod tests {
 
     #[test]
     fn test_map_from_sudoku() {
-        // TODO: More cases
+        // TODO(#11): More cases
         let sudoku = Sudoku::new(3);
         let map: PossibilityMap = sudoku.into();
         for p in map.possibilities {

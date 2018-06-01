@@ -8,6 +8,6 @@ use Score;
 pub trait Generate: Score + Sized {
     /// Generates a puzzle of the desired order and difficulty.
     fn generate(order: u8, difficulty: Difficulty) -> Self {
-        unimplemented!() // TODO: Default puzzle generation based on Solve
+        unimplemented!() // TODO(#2): Default puzzle generation based on Solve
     }
 }
