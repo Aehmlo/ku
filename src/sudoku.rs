@@ -38,6 +38,10 @@ pub enum Group {
     ///
     /// ### Rule
     /// Each band may contain each element value only once.
+    ///
+    /// ### Dimensionality
+    /// In *n* dimensions, `n - 1` bands apply to each element.
+    /// Each is linearly independent from the others and from the relevant stack.
     Band(Vec<Option<Element>>),
 }
 
