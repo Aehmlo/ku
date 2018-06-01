@@ -256,7 +256,7 @@ impl Sudoku {
                 }
                 true
             })
-            .map(|(_, v)| v.clone())
+            .map(|(_, v)| *v)
             .collect::<Vec<_>>();
         let b = Group::Box(b);
 
@@ -274,7 +274,7 @@ impl Sudoku {
                 }
                 true
             })
-            .map(|(_, v)| v.clone())
+            .map(|(_, v)| *v)
             .collect::<Vec<_>>();
         let s = Group::Stack(s);
         let bands = (1..DIMENSIONS)
@@ -295,7 +295,7 @@ impl Sudoku {
                         }
                         true
                     })
-                    .map(|(_, v)| v.clone())
+                    .map(|(_, v)| *v)
                     .collect()
             })
             .map(|v| Group::Band(v))

@@ -81,7 +81,7 @@ pub trait Score: Solve {
 }
 
 // TODO(#12): Allow higher orders (u128?)
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 struct PossibilitySet {
     values: u64,
 }
@@ -141,7 +141,7 @@ impl PossibilityMap {
     // There's no way it's cheaper to reconstruct the map each time, so we make this mutating.
     // TODO(#10): Benchmark
     pub fn eliminate(&mut self, index: Point, value: usize) {
-        self[index] = self[index].clone().and_then(|e| e.eliminate(value));
+        self[index] = self[index].and_then(|e| e.eliminate(value));
     }
 
     // Returns the next easiest index to solve and its corresponding value.
@@ -150,9 +150,9 @@ impl PossibilityMap {
         let mut best_index = None;
         let mut best_score = None;
         for index in self.points() {
-            if let Some(ref element) = self[index] {
+            if let Some(element) = self[index] {
                 if best_score.is_none() || best_score.unwrap() > element.freedom() {
-                    best = Some(element.clone());
+                    best = Some(element);
                     best_index = Some(index);
                     best_score = Some(element.freedom());
                 }
