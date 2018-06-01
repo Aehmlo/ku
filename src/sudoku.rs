@@ -195,6 +195,7 @@ impl fmt::Display for Point {
     }
 }
 
+/// Represents an *n*-dimensional grid of values, indexable via [`Point`](struct.Point.html).
 pub trait Grid: Index<Point> {
     /// Returns all points in the grid.
     ///

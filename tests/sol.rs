@@ -1,9 +1,9 @@
 extern crate sudoku;
-use sudoku::{Grid, Group, Solve, Sudoku};
+use sudoku::{Grid, Solve, Sudoku};
 
 #[cfg_attr(feature = "2D", test)]
 #[cfg(feature = "2D")]
-fn test_solve_O3_2D() {
+fn test_solve_o3_2d() {
     let puzzle: Sudoku = include_str!("../tests/sudokus/solvable/2D-O3.txt")
         .parse()
         .unwrap();
@@ -13,7 +13,7 @@ fn test_solve_O3_2D() {
 
 #[cfg_attr(feature = "2D", test)]
 #[cfg(feature = "2D")]
-fn test_solve_O4_2D() {
+fn test_solve_o4_2d() {
     let puzzle: Sudoku = include_str!("../tests/sudokus/solvable/2D-O4.txt")
         .parse()
         .unwrap();
@@ -43,7 +43,6 @@ fn test_group_is_complete_and_is_valid() {
         .solution()
         .unwrap();
     for point in solution.points() {
-        let element = solution[point].unwrap();
         for group in solution.groups(point).iter() {
             assert!(group.is_complete());
             assert!(group.is_valid());
