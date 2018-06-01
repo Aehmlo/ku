@@ -223,6 +223,15 @@ impl Sudoku {
         }
     }
 
+    pub fn is_complete(&self) -> bool {
+        for point in self.points() {
+            if self[point].is_none() {
+                return false;
+            }
+        }
+        true
+    }
+
     /// Returns the relevant groups for checking a given element in the grid.
     ///
     /// The number of groups is always equal to the number of dimensions plus
@@ -544,6 +553,12 @@ mod tests {
                 assert_eq!(point, Point::unfold(point.fold(3), 3));
             }
         }
+        for i in 0..16 {
+            for j in 0..16 {
+                let point = Point([i, j]);
+                assert_eq!(point, Point::unfold(point.fold(4), 4));
+            }
+        }
     }
 
     #[cfg_attr(feature = "2D", test)]
@@ -590,6 +605,26 @@ mod tests {
                 };
                 let point = Point([i, j]);
                 assert_eq!(point.snap(3), Point([x, y]));
+            }
+        }
+        for i in 0..16 {
+            for j in 0..16 {
+                let x = match i {
+                    0...3 => 0,
+                    4...7 => 4,
+                    8...11 => 8,
+                    12...15 => 12,
+                    _ => unreachable!(),
+                };
+                let y = match j {
+                    0...3 => 0,
+                    4...7 => 4,
+                    8...11 => 8,
+                    12...15 => 12,
+                    _ => unreachable!(),
+                };
+                let point = Point([i, j]);
+                assert_eq!(point.snap(4), Point([x, y]));
             }
         }
     }

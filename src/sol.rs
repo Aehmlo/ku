@@ -245,12 +245,14 @@ fn recurse(mut context: &mut Context, difficulty: isize) {
     let map: PossibilityMap = problem.into();
     match map.next_index() {
         None => {
-            // We're done! Stash the solution and return.
-            if context.count == 0 {
-                context.branch_score = difficulty;
-                context.solution = Some(context.problem.clone());
+            if context.problem.is_complete() {
+                // We're done! Stash the solution and return.
+                if context.count == 0 {
+                    context.branch_score = difficulty;
+                    context.solution = Some(context.problem.clone());
+                }
+                context.count += 1;
             }
-            context.count += 1;
             return;
         }
         Some(index) => {
