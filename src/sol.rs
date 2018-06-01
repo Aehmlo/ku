@@ -80,34 +80,42 @@ pub trait Score: Solve {
     }
 }
 
+// TODO(#12): Allow higher orders (u128?)
 #[derive(Clone, Debug, PartialEq)]
 struct PossibilitySet {
-    values: Vec<usize>,
+    values: u64,
 }
 
 impl PossibilitySet {
     /// Creates a new set full of possibilities.
     pub fn new(order: u8) -> Self {
-        let values = (1..((order.pow(2) as usize) + 1)).collect();
+        let mut values = 0;
+        for i in 1..((order.pow(2) as usize) + 1) {
+            values |= 1 << (i - 1);
+        }
         Self { values }
     }
     /// Elminates the given possible value from the set and returns the result.
     pub fn eliminate(&self, value: usize) -> Option<Self> {
-        // Don't bother checking for value; we'd clone almost all the values anyway.
-        let values = self
-            .values
-            .clone()
-            .into_iter()
-            .filter(|v| v != &value)
-            .collect::<Vec<_>>();
-        match values.len() {
+        let values = self.values & !(1 << (value - 1));
+        match values {
             0 => None,
             _ => Some(Self { values }),
         }
     }
     /// The number of possible values in this set.
     pub fn freedom(&self) -> usize {
-        self.values.len()
+        let mut x = self.values;
+        let mut n = 0;
+        while x > 0 {
+            x &= x - 1;
+            n += 1;
+        }
+        n
+    }
+    /// Whether the set contains the given possibility.
+    pub fn contains(&self, value: usize) -> bool {
+        self.values | (1 << (value - 1)) == self.values
     }
 }
 
@@ -250,7 +258,9 @@ fn recurse(mut context: &mut Context, difficulty: isize) {
         }
         (Some(index), Some(set)) => {
             let branch_factor = set.freedom() as isize - 1;
-            let possible = set.values;
+            let possible = (1..(context.problem.order as usize + 1).pow(2))
+                .filter(|v| set.contains(*v))
+                .collect::<Vec<_>>();
             let difficulty = difficulty + branch_factor.pow(DIMENSIONS as u32);
             for value in possible {
                 let problem = context
@@ -393,6 +403,33 @@ mod tests {
         let map: PossibilityMap = sudoku.into();
         for p in map.possibilities {
             assert_eq!(p, Some(PossibilitySet::new(3)));
+        }
+    }
+
+    #[test]
+    fn test_set_new() {
+        let set = PossibilitySet::new(3);
+        for i in 1..10 {
+            assert!(set.contains(i));
+        }
+    }
+
+    #[test]
+    fn test_set_eliminate() {
+        let mut set = PossibilitySet::new(3);
+        for i in 1..9 {
+            set = set.eliminate(i).unwrap();
+            assert!(!set.contains(i));
+        }
+        assert_eq!(set.eliminate(9), None);
+    }
+
+    #[test]
+    fn test_set_freedom() {
+        let mut set = PossibilitySet::new(3);
+        for i in 1..9 {
+            set = set.eliminate(i).unwrap();
+            assert_eq!(set.freedom(), 9 - i);
         }
     }
 }
