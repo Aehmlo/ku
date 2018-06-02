@@ -29,8 +29,11 @@ use DIMENSIONS;
 use std::ops::{Index, IndexMut};
 
 /// Represents the difficulty of a puzzle.
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq, PartialOrd)]
 pub enum Difficulty {
+    #[doc(hidden)]
+    /// Filler
+    Unplayable,
     /// Very easy puzzles, ideal for learning a new game.
     Beginner,
     /// More advanced puzzles, good for practicing a new game.
@@ -41,6 +44,20 @@ pub enum Difficulty {
     Difficult,
     /// Coffee shop puzzles.
     Advanced,
+}
+
+impl From<usize> for Difficulty {
+    fn from(score: usize) -> Self {
+        use Difficulty::*;
+        match score {
+            0...49 => Unplayable,
+            50...150 => Beginner,
+            151...250 => Easy,
+            251...400 => Intermediate,
+            401...550 => Difficult,
+            _ => Advanced,
+        }
+    }
 }
 
 /// Encodes errors encountered while attempting a puzzle solution.
@@ -70,13 +87,7 @@ pub trait Score: Solve {
     /// The graded difficulty score of this puzzle.
     fn difficulty(&self) -> Option<Difficulty> {
         use self::Difficulty::*;
-        self.score().map(|score| match score {
-            0...50 => Beginner,
-            51...125 => Easy,
-            126...200 => Intermediate,
-            201...300 => Difficult,
-            _ => Advanced,
-        })
+        self.score().map(|s| s.into())
     }
 }
 
@@ -349,26 +360,6 @@ mod tests {
     impl Score for DifficultyDummyPuzzle {
         fn score(&self) -> Option<usize> {
             Some(self.difficulty)
-        }
-    }
-
-    #[test]
-    fn test_score_difficulty() {
-        let scores = [0, 50, 51, 125, 126, 200, 201, 300, 301, 999];
-        for difficulty in scores.into_iter() {
-            let difficulty = *difficulty;
-            let puzzle = DifficultyDummyPuzzle { difficulty };
-            if difficulty < 51 {
-                assert_eq!(puzzle.difficulty().unwrap(), Difficulty::Beginner)
-            } else if difficulty < 126 {
-                assert_eq!(puzzle.difficulty().unwrap(), Difficulty::Easy)
-            } else if difficulty < 201 {
-                assert_eq!(puzzle.difficulty().unwrap(), Difficulty::Intermediate)
-            } else if difficulty < 301 {
-                assert_eq!(puzzle.difficulty().unwrap(), Difficulty::Difficult)
-            } else {
-                assert_eq!(puzzle.difficulty().unwrap(), Difficulty::Advanced)
-            }
         }
     }
 
