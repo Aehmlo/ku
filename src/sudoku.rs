@@ -222,6 +222,7 @@ impl Sudoku {
         }
     }
 
+    /// Returns whether the puzzle is completely full of values.
     pub fn is_complete(&self) -> bool {
         for point in self.points() {
             if self[point].is_none() {
