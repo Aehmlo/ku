@@ -51,11 +51,11 @@ fn main() -> Result<(), Error> {
         (setting: clap::AppSettings::VersionlessSubcommands)
         (about: "A sudoku generator/solver/manipulator.")
         (@subcommand solve =>
-            (about: "Solves the given puzzle.")
+            (about: "Solves the given sudoku.")
             (@arg INPUT: "Sets the input file (defaults to stdin).")
         )
         (@subcommand score =>
-            (about: "Scores the given puzzle.")
+            (about: "Scores the given sudoku.")
             (@arg INPUT: "Sets the input file (defaults to stdin).")
         )
     ).get_matches();
