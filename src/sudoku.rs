@@ -304,7 +304,7 @@ impl Sudoku {
         g.insert(0, s);
         g.insert(0, b);
         // Here be dragons (not really, but update this when 1.27 gets stabilized)
-        clone_into_array(&g[..DIMENSIONS + 1])
+        clone_into_array(&g[..=DIMENSIONS])
     }
 
     /// Places the specified value (or lack thereof) at the specified index,

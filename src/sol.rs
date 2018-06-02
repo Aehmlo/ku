@@ -101,7 +101,7 @@ impl PossibilitySet {
     /// Creates a new set full of possibilities.
     pub fn new(order: u8) -> Self {
         let mut values = 0;
-        for i in 1..((order.pow(2) as usize) + 1) {
+        for i in 1..=order.pow(2) as usize {
             values |= 1 << (i - 1);
         }
         Self { values }
@@ -269,7 +269,7 @@ fn recurse(mut context: &mut Context, difficulty: isize) {
         }
         (Some(index), Some(set)) => {
             let branch_factor = set.freedom() as isize - 1;
-            let possible = (1..(context.problem.order as usize + 1).pow(2))
+            let possible = (1..=(context.problem.order as usize).pow(2))
                 .filter(|v| set.contains(*v))
                 .collect::<Vec<_>>();
             let difficulty = difficulty + branch_factor.pow(DIMENSIONS as u32);
