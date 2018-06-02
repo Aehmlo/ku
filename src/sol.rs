@@ -315,7 +315,7 @@ pub fn score(sudoku: &Sudoku) -> Option<usize> {
 #[cfg(test)]
 mod tests {
 
-    use sol::{calculate_c, Difficulty, Error, PossibilityMap, PossibilitySet, Score, Solve};
+    use sol::{calculate_c, Error, PossibilityMap, PossibilitySet, Solve};
     use Point;
     use Sudoku;
     use DIMENSIONS;
@@ -344,22 +344,6 @@ mod tests {
         assert_eq!(solvable.is_uniquely_solvable(), true);
         let unsolvable = DummyPuzzle::new(false);
         assert_eq!(unsolvable.is_uniquely_solvable(), false);
-    }
-
-    struct DifficultyDummyPuzzle {
-        difficulty: usize,
-    }
-
-    impl Solve for DifficultyDummyPuzzle {
-        fn solution(&self) -> Result<Self, Error> {
-            Err(Error::__TestOther)
-        }
-    }
-
-    impl Score for DifficultyDummyPuzzle {
-        fn score(&self) -> Option<usize> {
-            Some(self.difficulty)
-        }
     }
 
     #[test]
