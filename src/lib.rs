@@ -1,10 +1,11 @@
 //! A sudoku crate.
 
 #![warn(
-    missing_copy_implementations, missing_debug_implementations, missing_docs, trivial_casts,
+    missing_copy_implementations, missing_debug_implementations, trivial_casts,
     trivial_numeric_casts, unused_extern_crates, unused_import_braces, unused_qualifications,
     unused_results
 )]
+#![deny(missing_docs)]
 
 extern crate rand;
 
