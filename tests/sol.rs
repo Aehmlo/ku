@@ -26,7 +26,7 @@ fn test_solve_o4_2d() {
 #[cfg_attr(feature = "2D", ignore)]
 #[cfg(feature = "2D")]
 fn test_uniquely_solveable() {
-    let puzzle: Sudoku = include_str!("../tests/sudokus/solvable/2D-O4.txt")
+    let puzzle: Sudoku = include_str!("../tests/sudokus/solvable/2D-O3.txt")
         .parse()
         .unwrap();
     assert!(puzzle.is_uniquely_solvable());
