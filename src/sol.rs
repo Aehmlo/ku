@@ -93,8 +93,8 @@ pub trait Score: Solve {
 
 // TODO(#12): Allow higher orders (u128?)
 #[derive(Clone, Copy, Debug, PartialEq)]
-struct PossibilitySet {
-    values: u64,
+pub struct PossibilitySet {
+    pub values: u64,
 }
 
 impl PossibilitySet {
@@ -131,7 +131,7 @@ impl PossibilitySet {
 }
 
 #[derive(Debug)]
-struct PossibilityMap {
+pub struct PossibilityMap {
     possibilities: Vec<Option<PossibilitySet>>,
     order: u8,
 }

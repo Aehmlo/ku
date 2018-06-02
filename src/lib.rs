@@ -6,6 +6,8 @@
     unused_results
 )]
 
+extern crate rand;
+
 mod dimensions;
 mod gen;
 mod puzzle;

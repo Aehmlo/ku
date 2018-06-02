@@ -1,5 +1,4 @@
 use sol::{score, solve, Error as SolveError};
-use Generate;
 use Puzzle;
 use Score;
 use Solve;
@@ -360,8 +359,6 @@ impl Score for Sudoku {
         score(self)
     }
 }
-
-impl Generate for Sudoku {}
 
 #[cfg(feature = "2D")]
 impl fmt::Display for Sudoku {

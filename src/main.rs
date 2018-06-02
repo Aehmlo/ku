@@ -6,7 +6,7 @@ use std::{
     fs::File, io::{stdin, Error as IoError, Read},
 };
 
-use sudoku::{ParseError, Score, Solve, SolveError, Sudoku};
+use sudoku::{Difficulty, Generate, ParseError, Score, Solve, SolveError, Sudoku};
 
 #[derive(Debug)]
 enum Error {
@@ -58,6 +58,10 @@ fn main() -> Result<(), Error> {
             (about: "Scores the given sudoku.")
             (@arg INPUT: "Sets the input file (defaults to stdin).")
         )
+        (@subcommand generate =>
+            (about: "Generates a sudoku.")
+            (@arg ORDER: "The order of sudoku to be generated (defaults to 3).")
+        )
     ).get_matches();
     if let Some(matches) = matches.subcommand_matches("solve") {
         let solution = solve(&matches)?;
@@ -68,6 +72,9 @@ fn main() -> Result<(), Error> {
         } else {
             println!("Couldn't score puzzle.");
         }
+    } else if let Some(matches) = matches.subcommand_matches("generate") {
+        let order = matches.value_of("ORDER").and_then(|s: &str| s.parse().ok()).unwrap_or(3);
+        println!("{}", Sudoku::generate(order, Difficulty::Beginner));
     }
     Ok(())
 }
