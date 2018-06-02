@@ -4,7 +4,6 @@ use Difficulty;
 use Element;
 use Grid;
 use Score;
-use Solve;
 use Sudoku;
 
 /// The maximum number of times the hardening algorithm will try to make a harder puzzle in a
@@ -86,12 +85,9 @@ fn grid(order: u8) -> Option<Sudoku> {
 /// No validation is performed on the passed puzzle.
 fn harden(mut sudoku: &mut Sudoku, target: Difficulty) -> Result<(), ()> {
     let current = sudoku.score().unwrap();
-    let solution = sudoku.solution();
-    let mut rng = thread_rng();
     let mut points = sudoku.points();
     for _ in 0..MAX_HARDEN_ITERATIONS {
         if let (Some(one), Some(two)) = (take_random(&mut points), take_random(&mut points)) {
-            let old = (sudoku[one], sudoku[two]);
             let (one, two) = (one.fold(sudoku.order), two.fold(sudoku.order));
             let mut puzzle = sudoku.clone();
             // Faster than substituting twice.
@@ -124,7 +120,7 @@ fn harden(mut sudoku: &mut Sudoku, target: Difficulty) -> Result<(), ()> {
 impl Generate for Sudoku {
     fn generate(order: u8, difficulty: Difficulty) -> Self {
         let mut puzzle = grid(order).unwrap();
-        harden(&mut puzzle, difficulty);
+        let _ = harden(&mut puzzle, difficulty);
         puzzle
     }
 }

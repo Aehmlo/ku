@@ -86,7 +86,6 @@ pub trait Score: Solve {
     fn score(&self) -> Option<usize>;
     /// The graded difficulty score of this puzzle.
     fn difficulty(&self) -> Option<Difficulty> {
-        use self::Difficulty::*;
         self.score().map(|s| s.into())
     }
 }
