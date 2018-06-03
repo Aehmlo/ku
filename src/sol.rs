@@ -273,17 +273,16 @@ fn recurse(mut context: &mut Context, difficulty: isize) {
                 .collect::<Vec<_>>();
             let difficulty = difficulty + branch_factor.pow(DIMENSIONS as u32);
             for value in possible {
-                let problem = context
+                context
                     .problem
                     .substitute(index, Some(Element(value as u8)));
-                context.problem = problem;
                 recurse(&mut context, difficulty);
                 if context.count > 1 {
                     // There are multiple solutions; abort.
                     return;
                 }
             }
-            context.problem = context.problem.substitute(index, None);
+            context.problem.substitute(index, None);
         }
         _ => unreachable!(),
     }

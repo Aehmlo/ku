@@ -30,7 +30,6 @@ fn recurse(puzzle: Sudoku) -> Option<Sudoku> {
     let map: PossibilityMap = puzzle.clone().into();
     match map.next() {
         (None, _) => {
-            let puzzle = puzzle.clone();
             if puzzle.is_complete() {
                 Some(puzzle)
             } else {
@@ -42,7 +41,9 @@ fn recurse(puzzle: Sudoku) -> Option<Sudoku> {
                 .filter(|v| set.contains(*v))
                 .collect::<Vec<_>>();
             while let Some(candidate) = take_random(&mut possibilities) {
-                let solution = recurse(puzzle.substitute(index, Some(Element(candidate as u8))));
+                let mut puzzle = puzzle.clone();
+                puzzle.substitute(index, Some(Element(candidate as u8)));
+                let solution = recurse(puzzle);
                 if solution.is_some() {
                     return solution;
                 }
@@ -59,19 +60,15 @@ fn grid(order: u8) -> Option<Sudoku> {
     let mut puzzle = Sudoku::new(order);
     // TODO(#14): Revisit this block when NLL lands.
     {
-        // Top-left box
         let mut first_box = (1..=order.pow(2))
             .map(|v| Some(Element(v)))
             .collect::<Vec<_>>();
         rng.shuffle(&mut first_box);
         let order = order as usize;
         let axis = order.pow(2);
-        {
-            let elements = &mut puzzle.elements;
-            for i in 0..axis {
-                let index = i / order * axis + i;
-                elements[index] = first_box[i];
-            }
+        for i in 0..axis {
+            let index = i / order * axis + i % order;
+            puzzle.elements[index] = first_box[i];
         }
         // TODO(#13): Reduce the number of cells that are filled with backtracking.
         // The rest

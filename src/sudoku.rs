@@ -308,12 +308,9 @@ impl Sudoku {
     }
 
     /// Places the specified value (or lack thereof) at the specified index,
-    /// returning an owned copy.
-    pub fn substitute(&self, index: Point, value: Option<Element>) -> Self {
-        let mut elements = self.elements.clone();
-        let order = self.order;
-        elements[index.fold(order)] = value;
-        Self { elements, order }
+    /// modifying in-place.
+    pub fn substitute(&mut self, index: Point, value: Option<Element>) {
+        self.elements[index.fold(self.order)] = value;
     }
 }
 
