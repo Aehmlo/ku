@@ -21,6 +21,9 @@ mod puzzle;
 mod sol;
 mod sudoku;
 
+#[cfg(feature = "ui")]
+pub mod ui;
+
 pub use gen::Generate;
 pub use puzzle::Puzzle;
 pub use sol::{Difficulty, Error as SolveError, Score, Solve};
