@@ -7,7 +7,13 @@
 )]
 #![deny(missing_docs)]
 
+#[cfg(all(feature = "use_stdweb", feature = "use_rand"))]
+compile_error!("use_stdweb and use_rand are mutually exclusive.");
+#[cfg(feature = "use_rand")]
 extern crate rand;
+#[cfg_attr(feature = "use_stdweb", macro_use)]
+#[cfg(feature = "use_stdweb")]
+extern crate stdweb;
 
 mod dimensions;
 mod gen;

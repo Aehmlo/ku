@@ -23,9 +23,10 @@ path = "src/lib.rs"
 [dependencies]
 rand = "0.4.2"
 clap = "2.31.2"
+stdweb = "0.4.6"
 
 [features]
-default = ["2D"]
+default = ["2D", "use_rand"]
 "2D" = []
 "3D" = []
 "4D" = []
@@ -37,3 +38,5 @@ default = ["2D"]
 "10D" = []
 "11D" = []
 "12D" = []
+"use_rand" = []
+"use_stdweb" = []

@@ -1,4 +1,8 @@
+#[cfg(feature = "use_rand")]
 use rand::{thread_rng, Rng};
+#[cfg(feature = "use_stdweb")]
+use stdweb::unstable::TryInto;
+
 use sol::PossibilityMap;
 use Difficulty;
 use Element;
@@ -19,10 +23,26 @@ pub trait Generate: Score + Sized {
     fn generate(order: u8, difficulty: Difficulty) -> Self;
 }
 
-fn take_random<T>(values: &mut Vec<T>) -> Option<T> {
+#[cfg(feature = "use_rand")]
+fn shuffle<T>(vec: &mut Vec<T>) {
     let mut rng = thread_rng();
+    rng.shuffle(vec);
+}
+#[cfg(feature = "use_stdweb")]
+fn shuffle<T>(vec: &mut Vec<T>) {
+    let len = vec.len() as u32;
+    for i in 0..len {
+        let j = len - i;
+        let index: u32 = js!{ return Math.floor(Math.random() * @{j}); }
+            .try_into()
+            .unwrap();
+        vec.swap(index as usize, (j - 1) as usize);
+    }
+}
+
+fn take_random<T>(values: &mut Vec<T>) -> Option<T> {
     let mut indices = (0..values.len()).collect::<Vec<_>>();
-    rng.shuffle(&mut indices);
+    shuffle(&mut indices);
     indices.get(0).map(|index| values.remove(*index))
 }
 
@@ -56,14 +76,13 @@ fn recurse(puzzle: Sudoku) -> Option<Sudoku> {
 
 /// Creates a randomized sudoku grid of the specified order.
 fn grid(order: u8) -> Option<Sudoku> {
-    let mut rng = thread_rng();
     let mut puzzle = Sudoku::new(order);
     // TODO(#14): Revisit this block when NLL lands.
     {
         let mut first_box = (1..=order.pow(2))
             .map(|v| Some(Element(v)))
             .collect::<Vec<_>>();
-        rng.shuffle(&mut first_box);
+        shuffle(&mut first_box);
         let order = order as usize;
         let axis = order.pow(2);
         for i in 0..axis {
