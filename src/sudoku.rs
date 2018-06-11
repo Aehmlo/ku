@@ -107,7 +107,7 @@ pub struct Sudoku {
 ///
 /// Additional axes (if applicable) follow the right-hand rule.
 #[derive(Copy, Clone, Debug, PartialEq)]
-pub struct Point([u8; DIMENSIONS]);
+pub struct Point(pub [u8; DIMENSIONS]);
 impl Point {
     /// Compresses an *n*-dimensional point to a single coordinate.
     ///
