@@ -307,6 +307,82 @@ impl Sudoku {
         clone_into_array(&g[..=DIMENSIONS])
     }
 
+    /// Returns the relevant group indices.
+    pub fn group_indices(&self, pos: Point) -> Vec<Point> {
+        for i in 0..DIMENSIONS {
+            assert!(pos[i] < self.order.pow(2));
+        }
+        let top_left = pos.snap(self.order);
+        let order = self.order as i32;
+        let points = self.points();
+        let b = points
+            .iter()
+            .filter(|index| {
+                let y = index[1];
+                let x = index[0];
+                let dy = y as i32 - top_left[1] as i32;
+                let dx = x as i32 - top_left[0] as i32;
+                if dy < 0 || dx < 0 || dy >= order || dx >= order {
+                    return false;
+                }
+                true
+            })
+            .map(|p: &Point| *p)
+            .collect::<Vec<_>>();
+
+        let s = points
+            .iter()
+            .filter(|index| {
+                if index[0] != pos[0] {
+                    return false;
+                }
+                for i in 2..DIMENSIONS {
+                    if index[i] != pos[i] {
+                        return false;
+                    }
+                }
+                true
+            })
+            .map(|p: &Point| *p)
+            .collect::<Vec<_>>();
+
+        let bands: Vec<Vec<Point>> = (1..DIMENSIONS)
+            .map(|i| {
+                // The variant dimension
+                let dimension = i - 1;
+                points
+                    .iter()
+                    .filter(|index| {
+                        for j in 0..DIMENSIONS {
+                            if j == dimension {
+                                continue;
+                            }
+                            if pos[j] != index[j] {
+                                return false;
+                            }
+                        }
+                        true
+                    })
+                    .map(|p: &Point| *p)
+                    .collect()
+            })
+            .collect::<Vec<_>>();
+        let mut points = vec![];
+        for point in b {
+            points.push(point);
+        }
+        for point in s {
+            points.push(point);
+        }
+        for band in bands {
+            for point in band {
+                points.push(point);
+            }
+        }
+        points.dedup();
+        points
+    }
+
     /// Places the specified value (or lack thereof) at the specified index,
     /// modifying in-place.
     pub fn substitute(&mut self, index: Point, value: Option<Element>) {
