@@ -178,27 +178,65 @@ compile_error!(
 /// To change the number of dimensions, compile with the appropriate feature name.
 /// Feature names are *n*D, where *n* is the number of dimensions (2–12).
 ///
-/// # Notes
-/// Some features are missing for higher-dimension sudokus.
 #[cfg(feature = "2D")]
 pub const DIMENSIONS: usize = 2;
+/// The number of dimensions in which all sudoku methods will operate.
+///
+/// # Notes
+/// Some features are missing for higher-dimension sudokus.
 #[cfg(feature = "3D")]
 pub const DIMENSIONS: usize = 3;
+/// The number of dimensions in which all sudoku methods will operate.
+///
+/// # Notes
+/// Some features are missing for higher-dimension sudokus.
 #[cfg(feature = "4D")]
 pub const DIMENSIONS: usize = 4;
+/// The number of dimensions in which all sudoku methods will operate.
+///
+/// # Notes
+/// Some features are missing for higher-dimension sudokus.
 #[cfg(feature = "5D")]
 pub const DIMENSIONS: usize = 5;
+/// The number of dimensions in which all sudoku methods will operate.
+///
+/// # Notes
+/// Some features are missing for higher-dimension sudokus.
 #[cfg(feature = "6D")]
 pub const DIMENSIONS: usize = 6;
+/// The number of dimensions in which all sudoku methods will operate.
+///
+/// # Notes
+/// Some features are missing for higher-dimension sudokus.
 #[cfg(feature = "7D")]
 pub const DIMENSIONS: usize = 7;
+/// The number of dimensions in which all sudoku methods will operate.
+///
+/// # Notes
+/// Some features are missing for higher-dimension sudokus.
 #[cfg(feature = "8D")]
 pub const DIMENSIONS: usize = 8;
+/// The number of dimensions in which all sudoku methods will operate.
+///
+/// # Notes
+/// Some features are missing for higher-dimension sudokus.
 #[cfg(feature = "9D")]
 pub const DIMENSIONS: usize = 9;
+/// The number of dimensions in which all sudoku methods will operate.
+///
+/// # Notes
+/// Some features are missing for higher-dimension sudokus.
 #[cfg(feature = "10D")]
 pub const DIMENSIONS: usize = 10;
+/// The number of dimensions in which all sudoku methods will operate.
+///
+/// # Notes
+/// Some features are missing for higher-dimension sudokus.
 #[cfg(feature = "11D")]
 pub const DIMENSIONS: usize = 11;
+/// The number of dimensions in which all sudoku methods will operate.
+///
+/// # Notes
+/// Some features are missing for higher-dimension sudokus.
 #[cfg(feature = "12D")]
 pub const DIMENSIONS: usize = 12;
