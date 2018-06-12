@@ -435,30 +435,48 @@ impl Score for Sudoku {
 }
 
 #[cfg(feature = "2D")]
-impl fmt::Display for Sudoku {
-    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
-        let order = self.order;
-        let axis = order.pow(2);
-        for y in 0..axis {
-            for x in 0..axis {
-                let element = self[Point([x, y])];
-                match element {
-                    Some(Element(value)) => {
-                        write!(f, "{}", value)?;
+macro_rules! sudoku_fmt {
+    ($style:ident) => {
+        impl fmt::$style for Sudoku {
+            fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+                let order = self.order;
+                let axis = order.pow(2);
+                for y in 0..axis {
+                    for x in 0..axis {
+                        let element = self[Point([x, y])];
+                        match element {
+                            Some(Element(mut value)) => {
+                                if value > 9 {
+                                    value -= 1;
+                                    if value == 9 {
+                                        value = 0;
+                                    }
+                                }
+                                value.fmt(f)?;
+                            }
+                            None => {
+                                write!(f, "_")?;
+                            }
+                        }
+                        if x != axis - 1 {
+                            write!(f, " ")?;
+                        }
                     }
-                    None => {
-                        write!(f, "_")?;
-                    }
+                    write!(f, "\n")?;
                 }
-                if x != axis - 1 {
-                    write!(f, " ")?;
-                }
+                Ok(())
             }
-            write!(f, "\n")?;
         }
-        Ok(())
-    }
+    };
 }
+
+#[cfg(not(feature = "2D"))]
+macro_rules! sudoku_fmt {
+    ($style:ident) => {};
+}
+
+sudoku_fmt!(Display);
+sudoku_fmt!(UpperHex);
 
 /// Represents a deserialization error.
 #[derive(Clone, Copy, Debug)]

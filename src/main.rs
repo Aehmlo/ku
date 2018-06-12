@@ -74,7 +74,7 @@ fn main() -> Result<(), Error> {
         }
     } else if let Some(matches) = matches.subcommand_matches("generate") {
         let order = matches.value_of("ORDER").and_then(|s: &str| s.parse().ok()).unwrap_or(3);
-        println!("{}", Sudoku::generate(order, Difficulty::Beginner));
+        println!("{:X}", Sudoku::generate(order, Difficulty::Beginner));
     }
     Ok(())
 }
