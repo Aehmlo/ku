@@ -208,7 +208,7 @@ pub fn render(context: Option<&Context>) {
             }
             fill_box(&ctx, &context, point, HIGHLIGHT);
         }
-        let angles = [0, 15, 40, 60, 100, 150, 230, 275, 315];
+        let angles = [0, 15, 40, 60, 100, 160, 230, 275, 315];
         let colors = angles
             .into_iter()
             .map(|angle| format!("hsl({}, 70%, 50%)", angle))
