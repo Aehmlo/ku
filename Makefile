@@ -1,3 +1,7 @@
+lib:
+	cargo build --release --lib
+bin:
+	cargo build --release --bin ku
 www:
 	cd web && cargo +nightly web deploy --release
 	cp -r web/target/deploy/ deploy/ && \
