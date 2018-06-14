@@ -133,6 +133,7 @@ impl PossibilitySet {
 pub struct PossibilityMap {
     possibilities: Vec<Option<PossibilitySet>>,
     order: u8,
+    parent: Option<Sudoku>,
 }
 
 impl PossibilityMap {
@@ -144,6 +145,7 @@ impl PossibilityMap {
                 (order as usize).pow(2 + DIMENSIONS as u32)
             ],
             order,
+            parent: None,
         }
     }
 
@@ -165,6 +167,13 @@ impl PossibilityMap {
                     best = Some(element);
                     best_index = Some(index);
                     best_score = Some(element.freedom());
+                }
+            } else {
+                if let Some(ref parent) = self.parent {
+                    if parent[index].is_none() {
+                        // We've encountered an empty cell with no possibilities; abort.
+                        return (None, None);
+                    }
                 }
             }
         }
@@ -219,6 +228,7 @@ impl From<Sudoku> for PossibilityMap {
                 }
             }
         }
+        map.parent = Some(sudoku);
         map
     }
 }
