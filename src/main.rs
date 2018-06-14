@@ -3,7 +3,8 @@ extern crate clap;
 extern crate sudoku;
 
 use std::{
-    fs::File, io::{stdin, Error as IoError, Read},
+    fs::File,
+    io::{stdin, Error as IoError, Read},
 };
 
 use sudoku::{Difficulty, Generate, ParseError, Score, Solve, SolveError, Sudoku};

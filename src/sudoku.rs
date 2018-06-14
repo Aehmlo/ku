@@ -5,7 +5,9 @@ use Solve;
 use DIMENSIONS;
 
 use std::{
-    fmt, ops::{Index, IndexMut}, str::FromStr,
+    fmt,
+    ops::{Index, IndexMut},
+    str::FromStr,
 };
 
 /// Represents a single sudoku "square."
