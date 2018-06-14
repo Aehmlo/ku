@@ -15,7 +15,8 @@ pub struct Game {
     /// The current state of the game.
     pub current: Sudoku,
     solution: Sudoku,
-    moves: usize,
+    /// The number of moves performed so far.
+    pub moves: usize,
 }
 
 impl Game {
