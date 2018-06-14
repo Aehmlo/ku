@@ -45,6 +45,14 @@ fn grid_length() -> f64 {
     min(0.9 * width, 0.9 * height)
 }
 
+fn get_canvas() -> CanvasElement {
+    document()
+        .get_element_by_id("canvas")
+        .unwrap()
+        .try_into()
+        .unwrap()
+}
+
 fn grid_origin(context: &Option<&Context>) -> (f64, f64) {
     let axis = get_order(&context).pow(2);
 
@@ -93,11 +101,7 @@ pub fn play(context: Rc<RefCell<Context>>) {
         let context = &resize_context;
         render(Some(&context.borrow()));
     });
-    let canvas: CanvasElement = document()
-        .get_element_by_id("canvas")
-        .unwrap()
-        .try_into()
-        .unwrap();
+    let canvas = get_canvas();
     document().add_event_listener(move |event: KeyPressEvent| {
         if let Ok(mut context) = key_context.try_borrow_mut() {
             if let Some(point) = context.focused {
@@ -136,11 +140,7 @@ pub fn play(context: Rc<RefCell<Context>>) {
 }
 
 pub fn render(context: Option<&Context>) {
-    let canvas: CanvasElement = document()
-        .get_element_by_id("canvas")
-        .unwrap()
-        .try_into()
-        .unwrap();
+    let canvas: CanvasElement = get_canvas();
     canvas.set_width(window().inner_width() as u32);
     canvas.set_height(window().inner_height() as u32);
     let ctx = canvas.get_context::<CanvasRenderingContext2d>().unwrap();
