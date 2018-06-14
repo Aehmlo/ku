@@ -152,4 +152,11 @@ mod tests {
         assert!(grid.is_complete());
         assert!(grid.is_uniquely_solvable());
     }
+    #[cfg_attr(feature = "2D", test)]
+    fn test_grid_hang() {
+        for _ in 0..100 {
+            let grid = gen::grid(3).unwrap();
+            assert!(grid.is_complete());
+        }
+    }
 }
