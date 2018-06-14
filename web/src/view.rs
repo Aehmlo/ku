@@ -141,10 +141,8 @@ pub fn play(context: Rc<RefCell<Context>>) {
     });
     canvas.add_event_listener(move |event: ClickEvent| {
         if let Ok(mut context) = click_context.try_borrow_mut() {
-            if let Some(point) = point_for_click(&context, &event) {
-                context.focused = Some(point);
-                render(Some(&context));
-            }
+            context.focused = point_for_click(&context, &event);
+            render(Some(&context));
         }
     });
 }
