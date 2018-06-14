@@ -108,7 +108,7 @@ pub struct Sudoku {
 /// corner, with increasing x to the right and increasing y downward.
 ///
 /// Additional axes (if applicable) follow the right-hand rule.
-#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(Copy, Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub struct Point(pub [u8; DIMENSIONS]);
 impl Point {
     /// Compresses an *n*-dimensional point to a single coordinate.
