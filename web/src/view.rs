@@ -19,13 +19,23 @@ use std::{
     rc::{Rc, Weak},
 };
 
-const DARK_BG: &'static str = "#001d29";
-const DARK_GRID: &'static str = "rgba(240, 240, 240, 0.3)";
-const DARK_HIGHLIGHT: &'static str = "rgba(240, 240, 240, 0.2)";
+#[cfg(not(feature = "light_ui"))]
+const BG: &'static str = "#001d29";
+#[cfg(not(feature = "light_ui"))]
+const GRID: &'static str = "rgba(240, 240, 240, 0.3)";
+#[cfg(not(feature = "light_ui"))]
+const HIGHLIGHT: &'static str = "rgba(240, 240, 240, 0.2)";
+#[cfg(not(feature = "light_ui"))]
+const SUB_HIGHLIGHT: &'static str = "rgba(240, 240, 240, 0.1)";
 
-const LIGHT_BG: &'static str = "hsl(0, 0%, 99%)";
-const LIGHT_GRID: &'static str = "rgba(15, 15, 15, 0.3)";
-const LIGHT_HIGHLIGHT: &'static str = "rgba(15, 15, 15, 0.2)";
+#[cfg(feature = "light_ui")]
+const BG: &'static str = "hsl(0, 0%, 99%)";
+#[cfg(feature = "light_ui")]
+const GRID: &'static str = "rgba(15, 15, 15, 0.3)";
+#[cfg(feature = "light_ui")]
+const HIGHLIGHT: &'static str = "rgba(15, 15, 15, 0.1)";
+#[cfg(feature = "light_ui")]
+const SUB_HIGHLIGHT: &'static str = "rgba(15, 15, 15, 0.05)";
 
 // partial_min
 #[cfg_attr(rustfmt, rustfmt_skip)]
@@ -144,12 +154,12 @@ pub fn render(context: Option<&Context>) {
     canvas.set_width(window().inner_width() as u32);
     canvas.set_height(window().inner_height() as u32);
     let ctx = canvas.get_context::<CanvasRenderingContext2d>().unwrap();
-    ctx.set_fill_style_color(DARK_BG);
+    ctx.set_fill_style_color(BG);
     let width: f64 = canvas.width().into();
     let height: f64 = canvas.height().into();
 
     ctx.fill_rect(0.0, 0.0, width, height);
-    ctx.set_stroke_style_color(DARK_GRID);
+    ctx.set_stroke_style_color(GRID);
 
     let (left, top) = grid_origin(&context);
     let order = get_order(&context);

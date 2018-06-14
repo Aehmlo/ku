@@ -6,3 +6,7 @@ authors = ["Alex Hamilton <alex.hamilton@ou.edu>"]
 [dependencies]
 stdweb = "0.4.6"
 ku = { default-features = false, features = ["2D", "ui", "use_stdweb"], path = ".." }
+
+[features]
+default = []
+light_ui = []
