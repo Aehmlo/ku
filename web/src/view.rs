@@ -149,6 +149,21 @@ pub fn play(context: Rc<RefCell<Context>>) {
     });
 }
 
+pub fn fill_box(ctx: &CanvasRenderingContext2d, context: &Context, point: Point, color: &'static str) {
+    let (left, top) = grid_origin(&Some(context));
+    let axis = get_order(&Some(context)).pow(2);
+    let length = grid_length();
+    let spacing = length / (axis as f64);
+    ctx.set_fill_style_color(color);
+    ctx.fill_rect(
+        left + point[0] as f64 * spacing,
+        top + point[1] as f64 * spacing,
+        spacing,
+        spacing,
+    );
+    ctx.set_fill_style_color(BG);
+}
+
 pub fn render(context: Option<&Context>) {
     let canvas: CanvasElement = get_canvas();
     canvas.set_width(window().inner_width() as u32);
@@ -183,14 +198,15 @@ pub fn render(context: Option<&Context>) {
     ctx.set_text_align(TextAlign::Center);
     if let Some(context) = context {
         if let Some(point) = context.focused {
-            ctx.set_fill_style_color(DARK_HIGHLIGHT);
-            ctx.fill_rect(
-                left + point[0] as f64 * spacing,
-                top + point[1] as f64 * spacing,
-                spacing,
-                spacing,
-            );
-            ctx.set_fill_style_color(DARK_BG);
+            let mut group = context.game.current.group_indices(point);
+            group.sort();
+            group.dedup();
+            for point in group {
+                let s = format!("{}", point);
+                console!(log, s);
+                fill_box(&ctx, &context, point, SUB_HIGHLIGHT);
+            }
+            fill_box(&ctx, &context, point, HIGHLIGHT);
         }
         let angles = [0, 15, 40, 60, 100, 150, 230, 275, 315];
         let colors = angles
