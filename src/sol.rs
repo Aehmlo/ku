@@ -151,7 +151,6 @@ impl PossibilityMap {
 
     /// Removes the given value from the set of possibilities at the given location.
     // There's no way it's cheaper to reconstruct the map each time, so we make this mutating.
-    // TODO(#10): Benchmark
     pub fn eliminate(&mut self, index: Point, value: usize) {
         self[index] = self[index].and_then(|e| e.eliminate(value));
     }
