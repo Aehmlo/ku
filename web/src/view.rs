@@ -19,6 +19,8 @@ use std::{
     rc::{Rc, Weak},
 };
 
+const WHITE: &'static str = "#fff";
+
 #[cfg(not(feature = "light_ui"))]
 const BG: &'static str = "#001d29";
 #[cfg(not(feature = "light_ui"))]
@@ -36,6 +38,8 @@ const GRID: &'static str = "rgba(15, 15, 15, 0.3)";
 const HIGHLIGHT: &'static str = "rgba(15, 15, 15, 0.1)";
 #[cfg(feature = "light_ui")]
 const SUB_HIGHLIGHT: &'static str = "rgba(15, 15, 15, 0.05)";
+
+const COLORIZE_ON_HIGHLIGHT: bool = true;
 
 // partial_min
 #[cfg_attr(rustfmt, rustfmt_skip)]
@@ -147,7 +151,12 @@ pub fn play(context: Rc<RefCell<Context>>) {
     });
 }
 
-pub fn fill_box(ctx: &CanvasRenderingContext2d, context: &Context, point: Point, color: &'static str) {
+pub fn fill_box(
+    ctx: &CanvasRenderingContext2d,
+    context: &Context,
+    point: Point,
+    color: &'static str,
+) {
     let (left, top) = grid_origin(&Some(context));
     let axis = get_order(&Some(context)).pow(2);
     let length = grid_length();
@@ -195,27 +204,35 @@ pub fn render(context: Option<&Context>) {
     ctx.set_text_baseline(TextBaseline::Middle);
     ctx.set_text_align(TextAlign::Center);
     if let Some(context) = context {
-        if let Some(point) = context.focused {
-            let mut group = context.game.current.group_indices(point);
+        let highlighted: Option<Vec<Point>> = context.focused.map(|f| {
+            let mut group = context.game.current.group_indices(f);
             group.sort();
             group.dedup();
+            group
+        });
+        if let Some(ref group) = &highlighted {
             for point in group {
-                let s = format!("{}", point);
-                console!(log, s);
-                fill_box(&ctx, &context, point, SUB_HIGHLIGHT);
+                fill_box(&ctx, &context, *point, SUB_HIGHLIGHT);
             }
-            fill_box(&ctx, &context, point, HIGHLIGHT);
+        }
+        if let Some(focused) = context.focused {
+            fill_box(&ctx, &context, focused, HIGHLIGHT);
         }
         let angles = [0, 15, 40, 60, 100, 160, 230, 275, 315];
         let colors = angles
             .into_iter()
             .map(|angle| format!("hsl({}, 70%, 50%)", angle))
             .collect::<Vec<_>>();
+        let highlighted = highlighted.unwrap_or_default();
         for point in context.game.points() {
             if let Some(Element(value)) = context.game.current[point] {
                 let x = point[0];
                 let y = point[1];
-                let color = &colors[(value - 1) as usize];
+                let color = if COLORIZE_ON_HIGHLIGHT && !highlighted.contains(&point) {
+                    WHITE
+                } else {
+                    &colors[(value - 1) as usize]
+                };
                 ctx.set_fill_style_color(color);
                 ctx.fill_text(
                     &format!("{}", value),
