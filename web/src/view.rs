@@ -218,6 +218,7 @@ pub fn render(context: Option<&Context>) {
         if let Some(focused) = context.focused {
             fill_box(&ctx, &context, focused, HIGHLIGHT);
         }
+        let focused_value = context.focused.and_then(|p| context.game.current[p]);
         let angles = [0, 15, 40, 60, 100, 160, 230, 275, 315];
         let colors = angles
             .into_iter()
@@ -228,7 +229,7 @@ pub fn render(context: Option<&Context>) {
             if let Some(Element(value)) = context.game.current[point] {
                 let x = point[0];
                 let y = point[1];
-                let color = if COLORIZE_ON_HIGHLIGHT && !highlighted.contains(&point) {
+                let color = if COLORIZE_ON_HIGHLIGHT && !highlighted.contains(&point) && Some(Element(value)) != focused_value {
                     WHITE
                 } else {
                     &colors[(value - 1) as usize]
