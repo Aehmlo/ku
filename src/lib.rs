@@ -22,6 +22,8 @@ mod sol;
 mod sudoku;
 
 #[cfg(feature = "ui")]
+extern crate num_traits;
+#[cfg(feature = "ui")]
 pub mod ui;
 
 pub use gen::Generate;

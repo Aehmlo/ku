@@ -24,6 +24,7 @@ path = "src/lib.rs"
 rand = "0.4.2"
 clap = "2.31.2"
 stdweb = "0.4.6"
+num-traits = "0.2.4"
 
 [features]
 default = ["2D", "use_rand"]
