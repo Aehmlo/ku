@@ -9,3 +9,25 @@ body, html {
 	margin: 0;
 	padding: 0;
 }
+/* TODO(#22): Make this way prettier */
+#noscript {
+	font-family: Arial, sans-serif;
+	width: 100%;
+	width: 84vw;
+	height: 100%;
+	height: 100vh;
+	text-align: center;
+	padding: 8vw 8vw;
+	color: #fff;
+	font-size: 2.3vw;
+	position: absolute;
+	z-index: 9000;
+	left: 0;
+	top: 0;
+}
+#noscript a {
+	color: #fff;
+}
+#noscript a:hover {
+	color: #aaa;
+}
