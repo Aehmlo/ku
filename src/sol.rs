@@ -167,12 +167,10 @@ impl PossibilityMap {
                     best_index = Some(index);
                     best_score = Some(element.freedom());
                 }
-            } else {
-                if let Some(ref parent) = self.parent {
-                    if parent[index].is_none() {
-                        // We've encountered an empty cell with no possibilities; abort.
-                        return (None, None);
-                    }
+            } else if let Some(ref parent) = self.parent {
+                if parent[index].is_none() {
+                    // We've encountered an empty cell with no possibilities; abort.
+                    return (None, None);
                 }
             }
         }
@@ -214,14 +212,11 @@ impl From<Sudoku> for PossibilityMap {
                 map[point] = None;
             } else {
                 let groups = sudoku.groups(point);
-                for group in groups.iter() {
+                for group in &groups {
                     let elements = group.elements();
                     for element in elements {
-                        match element {
-                            Some(Element(value)) => {
-                                map.eliminate(point, value as usize);
-                            }
-                            None => {}
+                        if let Some(Element(value)) = element {
+                            map.eliminate(point, value as usize);
                         }
                     }
                 }
@@ -312,7 +307,7 @@ fn count_empty(sudoku: &Sudoku) -> usize {
 /// Calculates the value of `C`, as discussed in [Scoring](#Scoring).
 fn calculate_c(sudoku: &Sudoku) -> usize {
     let order = sudoku.order;
-    10.0_f64.powf((order as f64).powf(4.0).log10().ceil()) as usize
+    10.0_f64.powf(f64::from(order).powf(4.0).log10().ceil()) as usize
 }
 
 /// Scores the passed, if it's solvable.

@@ -118,7 +118,7 @@ impl Point {
         let axis = (order as usize).pow(2);
         let mut sum = 0;
         for i in 0..DIMENSIONS {
-            sum += (self[i] as usize) * axis.pow(i as u32);
+            sum += usize::from(self[i]) * axis.pow(i as u32);
         }
         sum
     }
@@ -135,7 +135,7 @@ impl Point {
             let discriminant = axis.pow(j as u32);
             let dim = total / discriminant;
             point[j] = dim as u8;
-            total = total % discriminant;
+            total %= discriminant;
         }
         Point(point)
     }
@@ -243,7 +243,7 @@ impl Sudoku {
             assert!(pos[i] < self.order.pow(2));
         }
         let top_left = pos.snap(self.order);
-        let order = self.order as i32;
+        let order = i32::from(self.order);
         let points = self.points();
         let b = points
             .iter()
@@ -251,8 +251,8 @@ impl Sudoku {
             .filter(|(index, _)| {
                 let y = index[1];
                 let x = index[0];
-                let dy = y as i32 - top_left[1] as i32;
-                let dx = x as i32 - top_left[0] as i32;
+                let dy = i32::from(y) - i32::from(top_left[1]);
+                let dx = i32::from(x) - i32::from(top_left[0]);
                 if dy < 0 || dx < 0 || dy >= order || dx >= order {
                     return false;
                 }
@@ -300,7 +300,7 @@ impl Sudoku {
                     .map(|(_, v)| *v)
                     .collect()
             })
-            .map(|v| Group::Band(v))
+            .map(Group::Band)
             .collect::<Vec<_>>();
         let mut g = bands;
         g.insert(0, s);
@@ -315,21 +315,21 @@ impl Sudoku {
             assert!(pos[i] < self.order.pow(2));
         }
         let top_left = pos.snap(self.order);
-        let order = self.order as i32;
+        let order = i32::from(self.order);
         let points = self.points();
         let b = points
             .iter()
             .filter(|index| {
                 let y = index[1];
                 let x = index[0];
-                let dy = y as i32 - top_left[1] as i32;
-                let dx = x as i32 - top_left[0] as i32;
+                let dy = i32::from(y) - i32::from(top_left[1]);
+                let dx = i32::from(x) - i32::from(top_left[0]);
                 if dy < 0 || dx < 0 || dy >= order || dx >= order {
                     return false;
                 }
                 true
             })
-            .map(|p: &Point| *p)
+            .cloned()
             .collect::<Vec<_>>();
 
         let s = points
@@ -345,7 +345,7 @@ impl Sudoku {
                 }
                 true
             })
-            .map(|p: &Point| *p)
+            .cloned()
             .collect::<Vec<_>>();
 
         let bands: Vec<Vec<Point>> = (1..DIMENSIONS)
@@ -365,7 +365,7 @@ impl Sudoku {
                         }
                         true
                     })
-                    .map(|p: &Point| *p)
+                    .cloned()
                     .collect()
             })
             .collect::<Vec<_>>();
@@ -464,7 +464,7 @@ macro_rules! sudoku_fmt {
                             write!(f, " ")?;
                         }
                     }
-                    write!(f, "\n")?;
+                    writeln!(f)?;
                 }
                 Ok(())
             }
@@ -499,10 +499,10 @@ impl FromStr for Sudoku {
     type Err = ParseError;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let mut rows = s
-            .split("\n")
+            .split('\n')
             .map(|row| {
-                row.split(" ")
-                    .map(|cell| cell.parse().ok().map(|value| Element(value)))
+                row.split(' ')
+                    .map(|cell| cell.parse().ok().map(Element))
                     .collect::<Vec<_>>()
             })
             .collect::<Vec<_>>();
@@ -518,8 +518,7 @@ impl FromStr for Sudoku {
             return Err(ParseError::NonSquareAxis);
         }
         let mut elements = Vec::with_capacity(axis.pow(2));
-        for j in 0..axis {
-            let row = &rows[j];
+        for (j, row) in rows.iter().enumerate().take(axis) {
             if row.len() != axis {
                 return Err(ParseError::UnequalDimensions);
             }

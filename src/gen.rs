@@ -75,6 +75,7 @@ fn recurse(puzzle: Sudoku) -> Option<Sudoku> {
 }
 
 /// Creates a randomized sudoku grid of the specified order.
+#[cfg_attr(feature = "cargo-clippy", allow(needless_range_loop))]
 fn grid(order: u8) -> Option<Sudoku> {
     let mut puzzle = Sudoku::new(order);
     // TODO(#14): Revisit this block when NLL lands.
@@ -109,24 +110,21 @@ fn harden(mut sudoku: &mut Sudoku, target: Difficulty) -> Result<(), ()> {
             // Faster than substituting twice.
             puzzle.elements[one] = None;
             puzzle.elements[two] = None;
-            match puzzle.score() {
-                Some(score) => {
-                    if score > current {
-                        let difficulty: Difficulty = score.into();
-                        if difficulty > target {
-                            // We overshot the target difficulty
-                            continue;
-                        }
-                        sudoku.elements[one] = None;
-                        sudoku.elements[two] = None;
-                        return if difficulty == target {
-                            Ok(())
-                        } else {
-                            harden(&mut sudoku, target)
-                        };
+            if let Some(score) = puzzle.score() {
+                if score > current {
+                    let difficulty: Difficulty = score.into();
+                    if difficulty > target {
+                        // We overshot the target difficulty
+                        continue;
                     }
+                    sudoku.elements[one] = None;
+                    sudoku.elements[two] = None;
+                    return if difficulty == target {
+                        Ok(())
+                    } else {
+                        harden(&mut sudoku, target)
+                    };
                 }
-                _ => {}
             }
         }
     }
