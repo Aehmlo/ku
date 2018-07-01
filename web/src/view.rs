@@ -112,10 +112,17 @@ pub fn play(context: Rc<RefCell<Context>>) {
         render(Some(&context.borrow()));
     });
     let canvas = get_canvas();
-    document().add_event_listener(move |event: KeyPressEvent| {
+    document().add_event_listener(move |event: KeyDownEvent| {
         if let Ok(mut context) = key_context.try_borrow_mut() {
             if let Some(point) = context.focused {
-                if let Ok(value) = event.key().parse::<u8>() {
+                let key = event.key();
+                if key == "Backspace" || key == "Delete" {
+                    event.prevent_default();
+                    if context.game.is_mutable(point) {
+                        let _old = context.game.remove(point);
+                        render(Some(&context));
+                    }
+                } else if let Ok(value) = key.parse::<u8>() {
                     let order = get_order(&Some(&context));
                     if value > 0 && value <= order.pow(2) {
                         let element = Element(value);
