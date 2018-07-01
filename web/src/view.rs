@@ -1,9 +1,9 @@
 use stdweb::{
-    traits::{IKeyboardEvent, IMouseEvent},
+    traits::{IEvent, IKeyboardEvent, IMouseEvent},
     unstable::TryInto,
     web::{
         document,
-        event::{ClickEvent, KeyPressEvent, ResizeEvent},
+        event::{ClickEvent, KeyDownEvent, ResizeEvent},
         html_element::*,
         window, CanvasRenderingContext2d, IEventTarget, INonElementParentNode, TextAlign,
         TextBaseline,
@@ -12,11 +12,11 @@ use stdweb::{
 
 use Context;
 
-use sudoku::{ui::model::Game, Difficulty, Element, Point, Sudoku};
+use sudoku::{ui::model::Game, Difficulty, Element, Point};
 
 use std::{
     cell::RefCell,
-    rc::{Rc, Weak},
+    rc::Rc,
 };
 
 const WHITE: &'static str = "#fff";
@@ -86,10 +86,6 @@ fn grid_origin(context: &Option<&Context>) -> (f64, f64) {
 }
 
 fn point_for_click(context: &Context, click: &ClickEvent) -> Option<Point> {
-    let size = (
-        window().inner_width() as f64,
-        window().inner_height() as f64,
-    );
     let origin = grid_origin(&Some(context));
     let length = grid_length();
     let max = (origin.0 + length, origin.1 + length);

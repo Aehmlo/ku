@@ -2,7 +2,7 @@
 extern crate stdweb;
 extern crate sudoku;
 
-use sudoku::{ui::model::Game, Difficulty, Point, Sudoku};
+use sudoku::{ui::model::Game, Difficulty, Point};
 
 use std::{cell::RefCell, rc::Rc};
 
