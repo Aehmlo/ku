@@ -63,6 +63,15 @@ impl Game {
     pub fn points(&self) -> Vec<Point> {
         self.current.points()
     }
+    /// Returns whether the value at a given point was inserted by the user (and is therefore
+    /// mutable).
+    ///
+    /// In the case that there is no value at the given index, this method returns `true`.
+    /// Thus, this method can be considered to return whether the original generated puzzle
+    /// contained a supplied value at the given point.
+    pub fn is_mutable(&self, point: Point) -> bool {
+        self.problem[point].is_none()
+    }
 }
 
 /// Tools for managing the user's preferences.
