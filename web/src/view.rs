@@ -115,30 +115,38 @@ pub fn play(context: Rc<RefCell<Context>>) {
     document().add_event_listener(move |event: KeyDownEvent| {
         if let Ok(mut context) = key_context.try_borrow_mut() {
             if let Some(point) = context.focused {
-                let key = event.key();
-                if key == "Backspace" || key == "Delete" {
-                    event.prevent_default();
-                    if context.game.is_mutable(point) {
-                        let _old = context.game.remove(point);
+                match event.key().as_str() {
+                    "Backspace" | "Delete" => {
+                        event.prevent_default();
+                        if context.game.is_mutable(point) {
+                            let _old = context.game.remove(point);
+                            render(Some(&context));
+                        }
+                    }
+                    "Escape" => {
+                        context.focused = None;
                         render(Some(&context));
                     }
-                } else if let Ok(value) = key.parse::<u8>() {
-                    let order = get_order(&Some(&context));
-                    if value > 0 && value <= order.pow(2) {
-                        let element = Element(value);
-                        if context.game.insertion_is_correct(point, element) {
-                            context.game.insert(point, element);
-                            render(Some(&context));
-                            // This will need to change to is_solved if the behvaior of insertion
-                            // changes to allow incorrect insertions.
-                            if context.game.current.is_complete() {
-                                let congrats =
-                                    format!("Sudoku solved in {} moves!", context.game.moves);
-                                js! { alert(@{congrats}); }
-                                context.game =
-                                    Game::new(context.game.current.order, Difficulty::Advanced);
-                                context.focused = None;
-                                render(Some(&context));
+                    key => {
+                        if let Ok(value) = key.parse::<u8>() {
+                            let order = get_order(&Some(&context));
+                            if value > 0 && value <= order.pow(2) {
+                                let element = Element(value);
+                                if context.game.insertion_is_correct(point, element) {
+                                    context.game.insert(point, element);
+                                    render(Some(&context));
+                                    // This will need to change to is_solved if the behvaior of insertion
+                                    // changes to allow incorrect insertions.
+                                    if context.game.current.is_complete() {
+                                        let congrats =
+                                            format!("Sudoku solved in {} moves!", context.game.moves);
+                                        js! { alert(@{congrats}); }
+                                        context.game =
+                                            Game::new(context.game.current.order, Difficulty::Advanced);
+                                        context.focused = None;
+                                        render(Some(&context));
+                                    }
+                                }
                             }
                         }
                     }
