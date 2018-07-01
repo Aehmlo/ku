@@ -19,8 +19,8 @@ use std::{
     rc::Rc,
 };
 
-const WHITE: &'static str = "#fff";
-
+#[cfg(not(feature = "light_ui"))]
+const TEXT: &'static str = "#fff";
 #[cfg(not(feature = "light_ui"))]
 const BG: &'static str = "#001d29";
 #[cfg(not(feature = "light_ui"))]
@@ -30,6 +30,8 @@ const HIGHLIGHT: &'static str = "rgba(240, 240, 240, 0.2)";
 #[cfg(not(feature = "light_ui"))]
 const SUB_HIGHLIGHT: &'static str = "rgba(240, 240, 240, 0.1)";
 
+#[cfg(feature = "light_ui")]
+const TEXT: &'static str = "#555";
 #[cfg(feature = "light_ui")]
 const BG: &'static str = "hsl(0, 0%, 99%)";
 #[cfg(feature = "light_ui")]
@@ -241,7 +243,7 @@ pub fn render(context: Option<&Context>) {
                 let x = point[0];
                 let y = point[1];
                 let color = if COLORIZE_ON_HIGHLIGHT && !highlighted.contains(&point) && Some(Element(value)) != focused_value {
-                    WHITE
+                    TEXT
                 } else {
                     &colors[(value - 1) as usize]
                 };
