@@ -10,3 +10,4 @@ ku = { default-features = false, features = ["2D", "ui", "use_stdweb"], path = "
 [features]
 default = []
 light_ui = []
+allow_incorrect = []

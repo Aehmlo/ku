@@ -134,12 +134,10 @@ pub fn play(context: Rc<RefCell<Context>>) {
                             let order = get_order(&Some(&context));
                             if value > 0 && value <= order.pow(2) {
                                 let element = Element(value);
-                                if context.game.insertion_is_correct(point, element) {
+                                if context.game.insertion_is_correct(point, element) || cfg!(feature = "allow_incorrect") {
                                     context.game.insert(point, element);
                                     render(Some(&context));
-                                    // This will need to change to is_solved if the behvaior of insertion
-                                    // changes to allow incorrect insertions.
-                                    if context.game.current.is_complete() {
+                                    if context.game.current == context.game.solution {
                                         let congrats =
                                             format!("Sudoku solved in {} moves!", context.game.moves);
                                         js! { alert(@{congrats}); }

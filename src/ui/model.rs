@@ -14,7 +14,8 @@ pub struct Game {
     problem: Sudoku,
     /// The current state of the game.
     pub current: Sudoku,
-    solution: Sudoku,
+    /// The solution for this game.
+    pub solution: Sudoku,
     /// The number of moves performed so far.
     pub moves: usize,
 }
