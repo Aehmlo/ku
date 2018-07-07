@@ -175,7 +175,8 @@ compile_error!(
 
 /// The number of dimensions in which all sudoku methods will operate.
 ///
-/// To change the number of dimensions, compile with the appropriate feature name.
+/// To change the number of dimensions, compile with the appropriate feature
+/// name.
 /// Feature names are *n*D, where *n* is the number of dimensions (2–12).
 ///
 #[cfg(feature = "2D")]

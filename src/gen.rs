@@ -10,8 +10,8 @@ use Grid;
 use Score;
 use Sudoku;
 
-/// The maximum number of times the hardening algorithm will try to make a harder puzzle in a
-/// single pass.
+/// The maximum number of times the hardening algorithm will try to make a
+/// harder puzzle in a single pass.
 const MAX_HARDEN_ITERATIONS: u8 = 20;
 
 /// Trait to generate a puzzle.

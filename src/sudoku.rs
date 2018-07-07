@@ -16,7 +16,8 @@ use std::{
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub struct Element(pub u8);
 
-/// A subdivision of the main sudoku; the smallest grouping to which rules are applied.
+/// A subdivision of the main sudoku; the smallest grouping to which rules are
+/// applied.
 #[derive(Clone, Debug)]
 pub enum Group {
     /// A square set of [elements](struct.Element.html).
@@ -42,7 +43,8 @@ pub enum Group {
     ///
     /// ### Dimensionality
     /// In *n* dimensions, `n - 1` bands apply to each element.
-    /// Each is linearly independent from the others and from the relevant stack.
+    /// Each is linearly independent from the others and from the relevant
+    /// stack.
     Band(Vec<Option<Element>>),
 }
 
@@ -149,14 +151,16 @@ impl Point {
         point
     }
 
-    /// Creates a point with the given x-coordinate and all other coordinates zero.
+    /// Creates a point with the given x-coordinate and all other coordinates
+    /// zero.
     pub fn with_x(value: u8) -> Self {
         let mut point = [0; DIMENSIONS];
         point[0] = value;
         Point(point)
     }
 
-    /// Creates a point with the given y-coordinate and all other coordinates zero.
+    /// Creates a point with the given y-coordinate and all other coordinates
+    /// zero.
     pub fn with_y(value: u8) -> Self {
         let mut point = [0; DIMENSIONS];
         point[1] = value;
@@ -164,7 +168,8 @@ impl Point {
     }
 
     #[cfg(feature = "3D")]
-    /// Creates a point with the given z-coordinate and all other coordinates zero.
+    /// Creates a point with the given z-coordinate and all other coordinates
+    /// zero.
     pub fn with_z(value: u8) -> Self {
         let mut point = [0; DIMENSIONS];
         point[2] = value;
@@ -200,7 +205,8 @@ impl fmt::Display for Point {
     }
 }
 
-/// Represents an *n*-dimensional grid of values, indexable via [`Point`](struct.Point.html).
+/// Represents an *n*-dimensional grid of values, indexable via
+/// [`Point`](struct.Point.html).
 pub trait Grid: Index<Point> {
     /// Returns all points in the grid.
     ///
@@ -485,9 +491,11 @@ sudoku_fmt!(UpperHex);
 pub enum ParseError {
     /// Represents a grid with differing width and height.
     UnequalDimensions,
-    /// Represents the presence of a value too large for the puzzle's dimensions.
+    /// Represents the presence of a value too large for the puzzle's
+    /// dimensions.
     ///
-    /// The associated values are the large value and its would-be location in the puzzle.
+    /// The associated values are the large value and its would-be location in
+    /// the puzzle.
     LargeValue(u8, Point),
     /// Represents a grid with a non-perfect-square axial length.
     NonSquareAxis,

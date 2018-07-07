@@ -5,21 +5,24 @@
 //!
 //! # Approach
 //!
-//! We first find the empty element with the fewest possible values. We then try each of these
-//! candidates, recursively solving from there until we (hopefully) find a solution.
+//! We first find the empty element with the fewest possible values. We then
+//! try each of these candidates, recursively solving from there until we
+//! (hopefully) find a solution.
 //!
-//! We search until we've either found two solutions (meaning that the puzzle is not uniquely
-//! solvable) or exhausted the search tree.
+//! We search until we've either found two solutions (meaning that the puzzle
+//! is not uniquely solvable) or exhausted the search tree.
 //!
 //! # Scoring
-//! During the solving process, we calculate a *branch-difficulty score*, `S = Σ((B - 1)²)`, where
-//! `B` is the branching factor at a given node in the search tree from root to solution.
+//! During the solving process, we calculate a *branch-difficulty score*, `S =
+//! Σ((B - 1)²)`, where `B` is the branching factor at a given node in the
+//! search tree from root to solution.
 //!
 //! If no backtracking occurs, the branch-difficulty score is 0.
 //!
 //! ## Tabulation
-//! The final difficulty score is given by `D = S * C + E`, where `C` is the first power of 10
-//! greater than the number of elements and `E` is the number of empty elements.
+//! The final difficulty score is given by `D = S * C + E`, where `C` is the
+//! first power of 10 greater than the number of elements and `E` is the number
+//! of empty elements.
 use sudoku::Grid;
 use Element;
 use Point;
@@ -64,7 +67,8 @@ impl From<usize> for Difficulty {
 #[derive(Clone, Debug)]
 #[allow(missing_copy_implementations)] // This is an error type.
 pub enum Error {
-    /// A mere placeholder; this will be replaced by proper errors in a future revision.
+    /// A mere placeholder; this will be replaced by proper errors in a future
+    /// revision.
     Unknown,
     #[doc(hidden)]
     __TestOther,
@@ -149,8 +153,10 @@ impl PossibilityMap {
         }
     }
 
-    /// Removes the given value from the set of possibilities at the given location.
-    // There's no way it's cheaper to reconstruct the map each time, so we make this mutating.
+    /// Removes the given value from the set of possibilities at the given
+    /// location.
+    // There's no way it's cheaper to reconstruct the map each time, so we make
+    // this mutating.
     pub fn eliminate(&mut self, index: Point, value: usize) {
         self[index] = self[index].and_then(|e| e.eliminate(value));
     }

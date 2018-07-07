@@ -39,7 +39,8 @@ impl Game {
     pub fn relevant_points(&self, point: Point) -> Vec<Point> {
         self.problem.group_indices(point)
     }
-    /// Whether the proposed change is correct (according to the stored solution).
+    /// Whether the proposed change is correct (according to the stored
+    /// solution).
     pub fn insertion_is_correct(&self, point: Point, value: Element) -> bool {
         self.solution[point] == Some(value)
     }
@@ -47,13 +48,15 @@ impl Game {
     ///
     /// # Notes
     /// No validation of the insertion is made; use
-    /// [`insertion_is_valid`](#method.insertion_is_valid) to double-check the change before
-    /// insertion (and check whether invalid insertions should be allowed) before commiting.
+    /// [`insertion_is_valid`](#method.insertion_is_valid) to double-check the
+    /// change before insertion (and check whether invalid insertions
+    /// should be allowed) before commiting.
     pub fn insert(&mut self, point: Point, value: Element) {
         self.current.substitute(point, Some(value));
         self.moves += 1;
     }
-    /// Removes the indexed element from the puzzle, returning the old value (if applicable).
+    /// Removes the indexed element from the puzzle, returning the old value
+    /// (if applicable).
     pub fn remove(&mut self, point: Point) -> Option<Element> {
         self.moves += 1;
         let value = self.current[point];
@@ -64,12 +67,13 @@ impl Game {
     pub fn points(&self) -> Vec<Point> {
         self.current.points()
     }
-    /// Returns whether the value at a given point was inserted by the user (and is therefore
-    /// mutable).
+    /// Returns whether the value at a given point was inserted by the user
+    /// (and is therefore mutable).
     ///
-    /// In the case that there is no value at the given index, this method returns `true`.
-    /// Thus, this method can be considered to return whether the original generated puzzle
-    /// contained a supplied value at the given point.
+    /// In the case that there is no value at the given index, this method
+    /// returns `true`. Thus, this method can be considered to return
+    /// whether the original generated puzzle contained a supplied value at
+    /// the given point.
     pub fn is_mutable(&self, point: Point) -> bool {
         self.problem[point].is_none()
     }
@@ -86,7 +90,8 @@ pub mod config {
         generation: Generation,
     }
 
-    /// Specifies in-game behavior, such as what to do when the user answers incorrectly.
+    /// Specifies in-game behavior, such as what to do when the user answers
+    /// incorrectly.
     #[derive(Clone, Copy, Debug)]
     pub struct Behavior {
         /// Whether the user should be allowed to answer incorrectly.
@@ -101,7 +106,8 @@ pub mod config {
         }
     }
 
-    /// Specifies puzzle generation behavior, such as the default sudoku difficulty and order.
+    /// Specifies puzzle generation behavior, such as the default sudoku
+    /// difficulty and order.
     #[derive(Clone, Copy, Debug)]
     pub struct Generation {
         /// The default puzzle order.
