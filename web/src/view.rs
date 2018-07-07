@@ -129,6 +129,42 @@ pub fn play(context: Rc<RefCell<Context>>) {
                         context.focused = None;
                         render(Some(&context));
                     }
+                    "ArrowUp" | "w" | "k" if cfg!(feature = "vim_movement") => {
+                        if point[1] > 0 {
+                            let mut new = point;
+                            new[1] -= 1;
+                            context.focused = Some(new);
+                            render(Some(&context));
+                        }
+                        event.prevent_default();
+                    }
+                    "ArrowDown" | "s" | "j" if cfg!(feature = "vim_movement") => {
+                        if point[1] < context.game.current.order.pow(2) - 1 {
+                            let mut new = point;
+                            new[1] += 1;
+                            context.focused = Some(new);
+                            render(Some(&context));
+                        }
+                        event.prevent_default();
+                    }
+                    "ArrowLeft" | "a" | "h" if cfg!(feature = "vim_movement") => {
+                        if point[0] > 0 {
+                            let mut new = point;
+                            new[0] -= 1;
+                            context.focused = Some(new);
+                            render(Some(&context));
+                        }
+                        event.prevent_default();
+                    }
+                    "ArrowRight" | "d" | "l" if cfg!(feature = "vim_movement") => {
+                        if point[0] < context.game.current.order.pow(2) - 1 {
+                            let mut new = point;
+                            new[0] += 1;
+                            context.focused = Some(new);
+                            render(Some(&context));
+                        }
+                        event.prevent_default();
+                    }
                     key => {
                         if let Ok(value) = key.parse::<u8>() {
                             let order = get_order(&Some(&context));
@@ -150,6 +186,11 @@ pub fn play(context: Rc<RefCell<Context>>) {
                             }
                         }
                     }
+                }
+            } else {
+                if cfg!(feature = "vim_movement") && event.key().as_str() == "i" {
+                    context.focused = Some(Point::origin());
+                    render(Some(&context));
                 }
             }
         }

@@ -8,6 +8,7 @@ stdweb = "0.4.6"
 ku = { default-features = false, features = ["2D", "ui", "use_stdweb"], path = ".." }
 
 [features]
-default = []
+default = ["vim_movement", "allow_incorrect"]
 light_ui = []
 allow_incorrect = []
+vim_movement = []
