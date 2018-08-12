@@ -484,13 +484,15 @@ mod tests {
             (127, 255, 64),
             (170, 255, 64),
         ];
-        let pairs = rgb_colors.into_iter().zip(hsl_colors.into_iter()).map(
-            |(rgb_color, hsl_color)| {
-                let rgb = Rgb::<u8>(rgb_color.0, rgb_color.1, rgb_color.2);
-                let hsl: Hsl<u8> = rgb.into();
-                (hsl, Hsl::<u8>(hsl_color.0, hsl_color.1, hsl_color.2))
-            },
-        );
+        let pairs =
+            rgb_colors
+                .into_iter()
+                .zip(hsl_colors.into_iter())
+                .map(|(rgb_color, hsl_color)| {
+                    let rgb = Rgb::<u8>(rgb_color.0, rgb_color.1, rgb_color.2);
+                    let hsl: Hsl<u8> = rgb.into();
+                    (hsl, Hsl::<u8>(hsl_color.0, hsl_color.1, hsl_color.2))
+                });
         for pair in pairs {
             assert_eq!(pair.0, pair.1);
         }
@@ -535,13 +537,15 @@ mod tests {
             (127, 255, 64),
             (170, 255, 64),
         ];
-        let pairs = rgb_colors.into_iter().zip(hsl_colors.into_iter()).map(
-            |(rgb_color, hsl_color)| {
-                let hsl = Hsl::<u8>(hsl_color.0, hsl_color.1, hsl_color.2);
-                let rgb: Rgb<u8> = hsl.into();
-                (rgb, Rgb::<u8>(rgb_color.0, rgb_color.1, rgb_color.2))
-            },
-        );
+        let pairs =
+            rgb_colors
+                .into_iter()
+                .zip(hsl_colors.into_iter())
+                .map(|(rgb_color, hsl_color)| {
+                    let hsl = Hsl::<u8>(hsl_color.0, hsl_color.1, hsl_color.2);
+                    let rgb: Rgb<u8> = hsl.into();
+                    (rgb, Rgb::<u8>(rgb_color.0, rgb_color.1, rgb_color.2))
+                });
         for pair in pairs {
             assert_eq!(pair.0, pair.1);
         }

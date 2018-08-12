@@ -263,8 +263,7 @@ impl Sudoku {
                     return false;
                 }
                 true
-            })
-            .map(|(_, v)| *v)
+            }).map(|(_, v)| *v)
             .collect::<Vec<_>>();
         let b = Group::Box(b);
 
@@ -281,8 +280,7 @@ impl Sudoku {
                     }
                 }
                 true
-            })
-            .map(|(_, v)| *v)
+            }).map(|(_, v)| *v)
             .collect::<Vec<_>>();
         let s = Group::Stack(s);
         let bands = (1..DIMENSIONS)
@@ -302,11 +300,9 @@ impl Sudoku {
                             }
                         }
                         true
-                    })
-                    .map(|(_, v)| *v)
+                    }).map(|(_, v)| *v)
                     .collect()
-            })
-            .map(Group::Band)
+            }).map(Group::Band)
             .collect::<Vec<_>>();
         let mut g = bands;
         g.insert(0, s);
@@ -334,8 +330,7 @@ impl Sudoku {
                     return false;
                 }
                 true
-            })
-            .cloned()
+            }).cloned()
             .collect::<Vec<_>>();
 
         let s = points
@@ -350,8 +345,7 @@ impl Sudoku {
                     }
                 }
                 true
-            })
-            .cloned()
+            }).cloned()
             .collect::<Vec<_>>();
 
         let bands: Vec<Vec<Point>> = (1..DIMENSIONS)
@@ -370,11 +364,9 @@ impl Sudoku {
                             }
                         }
                         true
-                    })
-                    .cloned()
+                    }).cloned()
                     .collect()
-            })
-            .collect::<Vec<_>>();
+            }).collect::<Vec<_>>();
         let mut points = vec![];
         for point in b {
             points.push(point);
@@ -512,8 +504,7 @@ impl FromStr for Sudoku {
                 row.split(' ')
                     .map(|cell| cell.parse().ok().map(Element))
                     .collect::<Vec<_>>()
-            })
-            .collect::<Vec<_>>();
+            }).collect::<Vec<_>>();
         let order = (rows.len() as f64).sqrt() as usize;
         if rows.len() == order * order + 1 {
             let last = rows.pop().unwrap();
