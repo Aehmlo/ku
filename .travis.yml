@@ -8,9 +8,9 @@ matrix:
   fast_finish: true
 sudo: false
 install:
-  - test "${TRAVIS_RUST_VERSION//./_}" != "nightly" || rustup component add rustfmt-preview
+  - rustup component add rustfmt
 script:
-  - test "${TRAVIS_RUST_VERSION//./_}" != "nightly" || cargo fmt --all -- --check
+  - cargo fmt --all -- --check
   - cargo build --verbose
   - cargo test --all --verbose
   - cargo test --lib --no-default-features --features 3D,use_rand --verbose
