@@ -1,8 +1,8 @@
-use sol::{score, solve, Error as SolveError};
-use Puzzle;
-use Score;
-use Solve;
-use DIMENSIONS;
+use crate::sol::{score, solve, Error as SolveError};
+use crate::Puzzle;
+use crate::Score;
+use crate::Solve;
+use crate::DIMENSIONS;
 
 use std::{
     fmt,
@@ -71,7 +71,7 @@ impl Group {
         let len = elements.len();
         let mut elements = elements
             .into_iter()
-            .filter(|e| e.is_some())
+            .filter(Option::is_some)
             .collect::<Vec<_>>();
         elements.sort();
         elements.dedup();
@@ -116,7 +116,7 @@ impl Point {
     /// Compresses an *n*-dimensional point to a single coordinate.
     ///
     /// Inverse of [`Point::unfold`](#method.unfold).
-    pub fn fold(&self, order: u8) -> usize {
+    pub fn fold(self, order: u8) -> usize {
         let axis = (order as usize).pow(2);
         let mut sum = 0;
         for i in 0..DIMENSIONS {
@@ -244,6 +244,8 @@ impl Sudoku {
     ///
     /// The number of groups is always equal to the number of dimensions plus
     /// one.
+    // This allow is here for higher dimensions
+    #[allow(clippy::reverse_range_loop)]
     pub fn groups(&self, pos: Point) -> [Group; DIMENSIONS + 1] {
         for i in 0..DIMENSIONS {
             assert!(pos[i] < self.order.pow(2));
@@ -263,7 +265,8 @@ impl Sudoku {
                     return false;
                 }
                 true
-            }).map(|(_, v)| *v)
+            })
+            .map(|(_, v)| *v)
             .collect::<Vec<_>>();
         let b = Group::Box(b);
 
@@ -280,7 +283,8 @@ impl Sudoku {
                     }
                 }
                 true
-            }).map(|(_, v)| *v)
+            })
+            .map(|(_, v)| *v)
             .collect::<Vec<_>>();
         let s = Group::Stack(s);
         let bands = (1..DIMENSIONS)
@@ -300,9 +304,11 @@ impl Sudoku {
                             }
                         }
                         true
-                    }).map(|(_, v)| *v)
+                    })
+                    .map(|(_, v)| *v)
                     .collect()
-            }).map(Group::Band)
+            })
+            .map(Group::Band)
             .collect::<Vec<_>>();
         let mut g = bands;
         g.insert(0, s);
@@ -312,6 +318,8 @@ impl Sudoku {
     }
 
     /// Returns the relevant group indices.
+    // This allow is here for higher dimensions
+    #[allow(clippy::reverse_range_loop)]
     pub fn group_indices(&self, pos: Point) -> Vec<Point> {
         for i in 0..DIMENSIONS {
             assert!(pos[i] < self.order.pow(2));
@@ -330,7 +338,8 @@ impl Sudoku {
                     return false;
                 }
                 true
-            }).cloned()
+            })
+            .cloned()
             .collect::<Vec<_>>();
 
         let s = points
@@ -345,7 +354,8 @@ impl Sudoku {
                     }
                 }
                 true
-            }).cloned()
+            })
+            .cloned()
             .collect::<Vec<_>>();
 
         let bands: Vec<Vec<Point>> = (1..DIMENSIONS)
@@ -364,9 +374,11 @@ impl Sudoku {
                             }
                         }
                         true
-                    }).cloned()
+                    })
+                    .cloned()
                     .collect()
-            }).collect::<Vec<_>>();
+            })
+            .collect::<Vec<_>>();
         let mut points = vec![];
         for point in b {
             points.push(point);
@@ -504,7 +516,8 @@ impl FromStr for Sudoku {
                 row.split(' ')
                     .map(|cell| cell.parse().ok().map(Element))
                     .collect::<Vec<_>>()
-            }).collect::<Vec<_>>();
+            })
+            .collect::<Vec<_>>();
         let order = (rows.len() as f64).sqrt() as usize;
         if rows.len() == order * order + 1 {
             let last = rows.pop().unwrap();
@@ -521,13 +534,13 @@ impl FromStr for Sudoku {
             if row.len() != axis {
                 return Err(ParseError::UnequalDimensions);
             }
-            for i in 0..axis {
-                if let Some(Element(value)) = row[i] {
+            for (i, elem) in row.iter().enumerate().take(axis) {
+                if let Some(&Element(value)) = elem.as_ref() {
                     if value > axis as u8 {
                         return Err(ParseError::LargeValue(value, Point([i as u8, j as u8])));
                     }
                 }
-                elements.push(row[i]);
+                elements.push(*elem);
             }
         }
         Ok(Sudoku {
@@ -539,9 +552,9 @@ impl FromStr for Sudoku {
 
 #[cfg(test)]
 mod tests {
-    use sudoku::{Element, Group, Point, Sudoku};
-    use Puzzle;
-    use DIMENSIONS;
+    use crate::sudoku::{Element, Group, Point, Sudoku};
+    use crate::Puzzle;
+    use crate::DIMENSIONS;
 
     // TODO(#9): Procedural macro-ify these tests
     // TODO(#8): Implement positive tests for Sudoku::groups
@@ -717,7 +730,6 @@ mod tests {
             }
         }
     }
-    #[cfg_attr(rustfmt, rustfmt_skip)]
     #[cfg_attr(feature = "2D", test)]
     #[cfg(feature = "2D")]
     fn test_sudoku_from_str() {
@@ -738,8 +750,6 @@ mod tests {
             assert!(puzzle.is_err());
         }
     }
-
-    #[cfg_attr(rustfmt, rustfmt_skip)]
     #[cfg_attr(feature = "2D", test)]
     #[cfg(feature = "2D")]
     fn test_sudoku_from_str_parse_compose() {

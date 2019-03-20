@@ -23,11 +23,11 @@
 //! The final difficulty score is given by `D = S * C + E`, where `C` is the
 //! first power of 10 greater than the number of elements and `E` is the number
 //! of empty elements.
-use sudoku::Grid;
-use Element;
-use Point;
-use Sudoku;
-use DIMENSIONS;
+use crate::sudoku::Grid;
+use crate::Element;
+use crate::Point;
+use crate::Sudoku;
+use crate::DIMENSIONS;
 
 use std::ops::{Index, IndexMut};
 
@@ -51,7 +51,7 @@ pub enum Difficulty {
 
 impl From<usize> for Difficulty {
     fn from(score: usize) -> Self {
-        use Difficulty::*;
+        use crate::Difficulty::*;
         match score {
             0...49 => Unplayable,
             50...150 => Beginner,
@@ -90,7 +90,7 @@ pub trait Score: Solve {
     fn score(&self) -> Option<usize>;
     /// The graded difficulty score of this puzzle.
     fn difficulty(&self) -> Option<Difficulty> {
-        self.score().map(|s| s.into())
+        self.score().map(Into::into)
     }
 }
 
@@ -110,7 +110,7 @@ impl PossibilitySet {
         Self { values }
     }
     /// Elminates the given possible value from the set and returns the result.
-    pub fn eliminate(&self, value: usize) -> Option<Self> {
+    pub fn eliminate(self, value: usize) -> Option<Self> {
         let values = self.values & !(1 << (value - 1));
         match values {
             0 => None,
@@ -118,7 +118,7 @@ impl PossibilitySet {
         }
     }
     /// The number of possible values in this set.
-    pub fn freedom(&self) -> usize {
+    pub fn freedom(self) -> usize {
         let mut x = self.values;
         let mut n = 0;
         while x > 0 {
@@ -128,7 +128,7 @@ impl PossibilitySet {
         n
     }
     /// Whether the set contains the given possibility.
-    pub fn contains(&self, value: usize) -> bool {
+    pub fn contains(self, value: usize) -> bool {
         self.values | (1 << (value - 1)) == self.values
     }
 }
@@ -302,12 +302,7 @@ fn recurse(mut context: &mut Context, difficulty: isize) {
 ///
 /// Useful for scoring difficulty (see [Scoring](#Scoring)).
 fn count_empty(sudoku: &Sudoku) -> usize {
-    sudoku
-        .elements
-        .iter()
-        .filter(|e| e.is_none())
-        .collect::<Vec<_>>()
-        .len()
+    sudoku.elements.iter().filter(|e| e.is_none()).count()
 }
 
 /// Calculates the value of `C`, as discussed in [Scoring](#Scoring).
@@ -324,10 +319,10 @@ pub fn score(sudoku: &Sudoku) -> Option<usize> {
 #[cfg(test)]
 mod tests {
 
-    use sol::{calculate_c, Error, PossibilityMap, PossibilitySet, Solve};
-    use Point;
-    use Sudoku;
-    use DIMENSIONS;
+    use crate::sol::{calculate_c, Error, PossibilityMap, PossibilitySet, Solve};
+    use crate::Point;
+    use crate::Sudoku;
+    use crate::DIMENSIONS;
 
     struct DummyPuzzle(bool);
 

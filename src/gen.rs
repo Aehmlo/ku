@@ -3,12 +3,12 @@ use rand::{thread_rng, Rng};
 #[cfg(feature = "use_stdweb")]
 use stdweb::unstable::TryInto;
 
-use sol::PossibilityMap;
-use Difficulty;
-use Element;
-use Grid;
-use Score;
-use Sudoku;
+use crate::sol::PossibilityMap;
+use crate::Difficulty;
+use crate::Element;
+use crate::Grid;
+use crate::Score;
+use crate::Sudoku;
 
 /// The maximum number of times the hardening algorithm will try to make a
 /// harder puzzle in a single pass.
@@ -33,7 +33,7 @@ fn shuffle<T>(vec: &mut Vec<T>) {
     let len = vec.len() as u32;
     for i in 0..len {
         let j = len - i;
-        let index: u32 = js!{ return Math.floor(Math.random() * @{j}); }
+        let index: u32 = js! { return Math.floor(Math.random() * @{j}); }
             .try_into()
             .unwrap();
         vec.swap(index as usize, (j - 1) as usize);
@@ -75,7 +75,7 @@ fn recurse(puzzle: Sudoku) -> Option<Sudoku> {
 }
 
 /// Creates a randomized sudoku grid of the specified order.
-#[cfg_attr(feature = "cargo-clippy", allow(needless_range_loop))]
+#[allow(clippy::needless_range_loop)]
 fn grid(order: u8) -> Option<Sudoku> {
     let mut puzzle = Sudoku::new(order);
     // TODO(#14): Revisit this block when NLL lands.
@@ -141,8 +141,8 @@ impl Generate for Sudoku {
 
 #[cfg(test)]
 mod tests {
-    use gen;
-    use Solve;
+    use crate::gen;
+    use crate::Solve;
     #[cfg_attr(feature = "2D", test)]
     fn test_grid() {
         let grid = gen::grid(3);

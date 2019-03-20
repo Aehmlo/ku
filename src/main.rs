@@ -11,26 +11,26 @@ use sudoku::{Difficulty, Generate, ParseError, Score, Solve, SolveError, Sudoku}
 
 #[derive(Debug)]
 enum Error {
-    SolveError(SolveError),
-    ParseError(ParseError),
-    IoError(IoError),
+    Solve(SolveError),
+    Parse(ParseError),
+    Io(IoError),
 }
 
 impl From<ParseError> for Error {
     fn from(error: ParseError) -> Self {
-        Error::ParseError(error)
+        Error::Parse(error)
     }
 }
 
 impl From<SolveError> for Error {
     fn from(error: SolveError) -> Self {
-        Error::SolveError(error)
+        Error::Solve(error)
     }
 }
 
 impl From<IoError> for Error {
     fn from(error: IoError) -> Self {
-        Error::IoError(error)
+        Error::Io(error)
     }
 }
 
@@ -42,10 +42,10 @@ fn puzzle(matches: &clap::ArgMatches) -> Result<Sudoku, Error> {
     };
     let mut puzzle = String::new();
     reader.read_to_string(&mut puzzle)?;
-    puzzle.parse().map_err(|e: ParseError| e.into())
+    puzzle.parse().map_err(Into::into)
 }
 
-#[cfg_attr(rustfmt, rustfmt_skip)]
+#[rustfmt::skip]
 fn main() -> Result<(), Error> {
     let matches = clap_app!(ku =>
         (setting: clap::AppSettings::ArgRequiredElseHelp)
@@ -81,9 +81,7 @@ fn main() -> Result<(), Error> {
 }
 
 fn solve(matches: &clap::ArgMatches) -> Result<Sudoku, Error> {
-    puzzle(matches)
-        .and_then(|p| p.solution().map_err(|e| e.into()))
-        .map_err(|e| e.into())
+    puzzle(matches).and_then(|p| p.solution().map_err(Into::into))
 }
 
 fn score(matches: &clap::ArgMatches) -> Option<usize> {
