@@ -1,12 +1,12 @@
 //! Constructs relevant to implementating game logic.
 
-use Difficulty;
-use Element;
-use Generate;
-use Grid;
-use Point;
-use Solve;
-use Sudoku;
+use crate::Difficulty;
+use crate::Element;
+use crate::Generate;
+use crate::Grid;
+use crate::Point;
+use crate::Solve;
+use crate::Sudoku;
 
 /// Represents an in-progress game.
 #[derive(Debug)]
@@ -81,7 +81,7 @@ impl Game {
 
 /// Tools for managing the user's preferences.
 pub mod config {
-    use Difficulty;
+    use crate::Difficulty;
 
     /// Monolithic struct containing all user-configurable preferences.
     #[derive(Clone, Copy, Debug, Default)]
