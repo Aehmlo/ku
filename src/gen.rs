@@ -1,7 +1,7 @@
 #[cfg(feature = "use_rand")]
 use rand::{thread_rng, Rng};
 #[cfg(feature = "use_stdweb")]
-use stdweb::{unstable::TryInto, js, _js_impl, __js_raw_asm};
+use stdweb::{__js_raw_asm, _js_impl, js, unstable::TryInto};
 
 use crate::sol::PossibilityMap;
 use crate::Difficulty;

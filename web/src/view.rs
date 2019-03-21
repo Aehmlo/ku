@@ -14,10 +14,7 @@ use Context;
 
 use sudoku::{ui::model::Game, Difficulty, Element, Point};
 
-use std::{
-    cell::RefCell,
-    rc::Rc,
-};
+use std::{cell::RefCell, rc::Rc};
 
 #[cfg(not(feature = "light_ui"))]
 const TEXT: &'static str = "#fff";
@@ -170,15 +167,21 @@ pub fn play(context: Rc<RefCell<Context>>) {
                             let order = get_order(&Some(&context));
                             if value > 0 && value <= order.pow(2) {
                                 let element = Element(value);
-                                if context.game.insertion_is_correct(point, element) || cfg!(feature = "allow_incorrect") {
+                                if context.game.insertion_is_correct(point, element)
+                                    || cfg!(feature = "allow_incorrect")
+                                {
                                     context.game.insert(point, element);
                                     render(Some(&context));
                                     if context.game.current == context.game.solution {
-                                        let congrats =
-                                            format!("Sudoku solved in {} moves!", context.game.moves);
+                                        let congrats = format!(
+                                            "Sudoku solved in {} moves!",
+                                            context.game.moves
+                                        );
                                         js! { alert(@{congrats}); }
-                                        context.game =
-                                            Game::new(context.game.current.order, Difficulty::Advanced);
+                                        context.game = Game::new(
+                                            context.game.current.order,
+                                            Difficulty::Advanced,
+                                        );
                                         context.focused = None;
                                         render(Some(&context));
                                     }
@@ -281,7 +284,10 @@ pub fn render(context: Option<&Context>) {
             if let Some(Element(value)) = context.game.current[point] {
                 let x = point[0];
                 let y = point[1];
-                let color = if COLORIZE_ON_HIGHLIGHT && !highlighted.contains(&point) && Some(Element(value)) != focused_value {
+                let color = if COLORIZE_ON_HIGHLIGHT
+                    && !highlighted.contains(&point)
+                    && Some(Element(value)) != focused_value
+                {
                     TEXT
                 } else {
                     &colors[(value - 1) as usize]
