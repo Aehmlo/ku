@@ -13,8 +13,42 @@ if( typeof Rust === "undefined" ) {
         Rust.ku_web = factory();
     }
 }( this, function() {
-    function __initialize( __wasm_module, __load_asynchronously ) {
-    const Module = {};
+    return (function( module_factory ) {
+        var instance = module_factory();
+
+        if( typeof window === "undefined" && typeof process === "object" ) {
+            var fs = require( "fs" );
+            var path = require( "path" );
+            var wasm_path = path.join( __dirname, "ku-web.wasm" );
+            var buffer = fs.readFileSync( wasm_path );
+            var mod = new WebAssembly.Module( buffer );
+            var wasm_instance = new WebAssembly.Instance( mod, instance.imports );
+            return instance.initialize( wasm_instance );
+        } else {
+            var file = fetch( "ku-web.wasm", {credentials: "same-origin"} );
+
+            var wasm_instance = ( typeof WebAssembly.instantiateStreaming === "function"
+                ? WebAssembly.instantiateStreaming( file, instance.imports )
+                    .then( function( result ) { return result.instance; } )
+
+                : file
+                    .then( function( response ) { return response.arrayBuffer(); } )
+                    .then( function( bytes ) { return WebAssembly.compile( bytes ); } )
+                    .then( function( mod ) { return WebAssembly.instantiate( mod, instance.imports ) } ) );
+
+            return wasm_instance
+                .then( function( wasm_instance ) {
+                    var exports = instance.initialize( wasm_instance );
+                    console.log( "Finished loading Rust wasm module 'ku_web'" );
+                    return exports;
+                })
+                .catch( function( error ) {
+                    console.log( "Error loading Rust wasm module 'ku_web':", error );
+                    throw error;
+                });
+        }
+    }( function() {
+    var Module = {};
 
     Module.STDWEB_PRIVATE = {};
 
@@ -432,207 +466,165 @@ Module.STDWEB_PRIVATE.acquire_tmp = function( dummy ) {
 
 
 
-    let HEAP8 = null;
-    let HEAP16 = null;
-    let HEAP32 = null;
-    let HEAPU8 = null;
-    let HEAPU16 = null;
-    let HEAPU32 = null;
-    let HEAPF32 = null;
-    let HEAPF64 = null;
+    var HEAP8 = null;
+    var HEAP16 = null;
+    var HEAP32 = null;
+    var HEAPU8 = null;
+    var HEAPU16 = null;
+    var HEAPU32 = null;
+    var HEAPF32 = null;
+    var HEAPF64 = null;
 
     Object.defineProperty( Module, 'exports', { value: {} } );
 
-    const __imports = {
-        env: {
-            "__extjs_80d6d56760c65e49b7be8b6b01c1ea861b046bf0": function($0) {
-                Module.STDWEB_PRIVATE.decrement_refcount( $0 );
-            },
-            "__extjs_24e7348ebd4300e26b55234a3fd3454a78955a76": function($0, $1, $2, $3, $4) {
-                $0 = Module.STDWEB_PRIVATE.to_js($0);$1 = Module.STDWEB_PRIVATE.to_js($1);$2 = Module.STDWEB_PRIVATE.to_js($2);$3 = Module.STDWEB_PRIVATE.to_js($3);$4 = Module.STDWEB_PRIVATE.to_js($4);($0). fillRect (($1), ($2), ($3), ($4));
-            },
-            "__extjs_b42435b496a40339524d037e2aaaad915a207cea": function($0, $1) {
-                $0 = Module.STDWEB_PRIVATE.to_js($0);$1 = Module.STDWEB_PRIVATE.to_js($1);($0). lineWidth = ($1);
-            },
-            "__extjs_5ac38c9ecbb9a6f75e30e71400dabbd8d3562771": function($0) {
-                return (Module.STDWEB_PRIVATE.acquire_js_reference( $0 ) instanceof Event) | 0;
-            },
-            "__extjs_d69002be1576953a1f813b250ec4f9f4bdbd33df": function($0, $1, $2) {
-                $1 = Module.STDWEB_PRIVATE.to_js($1);$2 = Module.STDWEB_PRIVATE.to_js($2);Module.STDWEB_PRIVATE.from_js($0, (function(){return ($1). getElementById (($2));})());
-            },
-            "__extjs_97495987af1720d8a9a923fa4683a7b683e3acd6": function($0, $1) {
-                console.error( 'Panic error message:', Module.STDWEB_PRIVATE.to_js_string( $0, $1 ) );
-            },
-            "__extjs_21adbe0d4961da567547899cd36d8c90c9ccc8b8": function($0) {
-                $0 = Module.STDWEB_PRIVATE.to_js($0);($0). stroke ();
-            },
-            "__extjs_dc2fd915bd92f9e9c6a3bd15174f1414eee3dbaf": function() {
-                console.error( 'Encountered a panic!' );
-            },
-            "__extjs_69920acb495ef5b5f2a2907f2b2109c50f25a632": function($0) {
-                return (Module.STDWEB_PRIVATE.acquire_js_reference( $0 ) instanceof HTMLCanvasElement) | 0;
-            },
-            "__extjs_ae3cbd224f9d5c5e82750fd6b9d46fd91b2f397a": function($0, $1) {
-                $1 = Module.STDWEB_PRIVATE.to_js($1);Module.STDWEB_PRIVATE.from_js($0, (function(){return ($1). innerWidth ;})());
-            },
-            "__extjs_71814f536817e145bf617f76f3fb9c183ccaa313": function($0, $1) {
-                $0 = Module.STDWEB_PRIVATE.to_js($0);$1 = Module.STDWEB_PRIVATE.to_js($1);($0). textAlign = ($1);
-            },
-            "__extjs_20ad46df0c338e20bd94061cd656da90c3ba5ba5": function($0, $1) {
-                $1 = Module.STDWEB_PRIVATE.to_js($1);Module.STDWEB_PRIVATE.from_js($0, (function(){return ($1). getContext ("2d");})());
-            },
-            "__extjs_dafc7a42f11dfd59d938a8bf392d728f25dc1191": function($0, $1) {
-                $1 = Module.STDWEB_PRIVATE.to_js($1);Module.STDWEB_PRIVATE.from_js($0, (function(){return ($1). clientX ;})());
-            },
-            "__extjs_6ce693459878698d92d56b499a1b2a5f6bb03b69": function($0) {
-                return (Module.STDWEB_PRIVATE.acquire_js_reference( $0 ) instanceof KeyboardEvent) | 0;
-            },
-            "__extjs_c316475a01a50f3dfea2c3ec1fbe6277eafe16f2": function($0) {
-                $0 = Module.STDWEB_PRIVATE.to_js($0);($0). beginPath ();
-            },
-            "__extjs_9f22d4ca7bc938409787341b7db181f8dd41e6df": function($0) {
-                Module.STDWEB_PRIVATE.increment_refcount( $0 );
-            },
-            "__extjs_4c3d23fbc56db3e2ef0701318fb0fc2a36d37776": function($0, $1, $2) {
-                $0 = Module.STDWEB_PRIVATE.to_js($0);$1 = Module.STDWEB_PRIVATE.to_js($1);$2 = Module.STDWEB_PRIVATE.to_js($2);($0). lineTo (($1), ($2));
-            },
-            "__extjs_f930b076cc761caaaaaaf5dfb548bb4e2ef5f084": function($0, $1, $2) {
-                $0 = Module.STDWEB_PRIVATE.to_js($0);$1 = Module.STDWEB_PRIVATE.to_js($1);$2 = Module.STDWEB_PRIVATE.to_js($2);($0). moveTo (($1), ($2));
-            },
-            "__extjs_db305a6c5a92182cd239c9b558d60da7483bb5aa": function($0, $1) {
-                $0 = Module.STDWEB_PRIVATE.to_js($0);$1 = Module.STDWEB_PRIVATE.to_js($1);($0). strokeStyle = ($1);
-            },
-            "__extjs_5f6db237373e98c06fec4a321b98aaf31e941fb9": function($0, $1) {
-                $1 = Module.STDWEB_PRIVATE.to_js($1);Module.STDWEB_PRIVATE.from_js($0, (function(){return Math.floor (Math.random ()* ($1));})());
-            },
-            "__extjs_74d5764ddc102a8d3b6252116087a68f2db0c9d4": function($0) {
-                Module.STDWEB_PRIVATE.from_js($0, (function(){return window ;})());
-            },
-            "__extjs_6c47cfe7b20d140c462be80002863de205806d99": function($0, $1) {
-                $1 = Module.STDWEB_PRIVATE.to_js($1);Module.STDWEB_PRIVATE.from_js($0, (function(){return ($1). width ;})());
-            },
-            "__extjs_66cd7b3158f81a269e6c4e919e80a10441401908": function($0, $1) {
-                $1 = Module.STDWEB_PRIVATE.to_js($1);Module.STDWEB_PRIVATE.from_js($0, (function(){return ($1). innerHeight ;})());
-            },
-            "__extjs_1c8769c3b326d77ceb673ada3dc887cf1d509509": function($0) {
-                Module.STDWEB_PRIVATE.from_js($0, (function(){return document ;})());
-            },
-            "__extjs_bf4a1d0ebf8d0a83d15d3c9334ad2fcafbd5b71e": function($0, $1, $2, $3) {
-                $0 = Module.STDWEB_PRIVATE.to_js($0);$1 = Module.STDWEB_PRIVATE.to_js($1);$2 = Module.STDWEB_PRIVATE.to_js($2);$3 = Module.STDWEB_PRIVATE.to_js($3);($0). fillText (($1), ($2), ($3));
-            },
-            "__extjs_e72c0fa59b4192eaa92dc61cdc746eab194f8d89": function($0, $1) {
-                $1 = Module.STDWEB_PRIVATE.to_js($1);Module.STDWEB_PRIVATE.from_js($0, (function(){return ($1). clientY ;})());
+    function __web_on_grow() {
+        var buffer = Module.instance.exports.memory.buffer;
+        HEAP8 = new Int8Array( buffer );
+        HEAP16 = new Int16Array( buffer );
+        HEAP32 = new Int32Array( buffer );
+        HEAPU8 = new Uint8Array( buffer );
+        HEAPU16 = new Uint16Array( buffer );
+        HEAPU32 = new Uint32Array( buffer );
+        HEAPF32 = new Float32Array( buffer );
+        HEAPF64 = new Float64Array( buffer );
+    }
+
+    return {
+        imports: {
+            env: {
+                "__extjs_050e3f8fd41b9411cfd3fd413ce036926ced0f94": function($0) {
+                return (Module.STDWEB_PRIVATE.acquire_js_reference( $0 ) instanceof CanvasRenderingContext2D) | 0;
             },
             "__extjs_1681ea457e66a9f3c951512258a2581f67d04a83": function($0) {
                 $0 = Module.STDWEB_PRIVATE.to_js($0);($0). preventDefault ();
             },
+            "__extjs_1c8769c3b326d77ceb673ada3dc887cf1d509509": function($0) {
+                Module.STDWEB_PRIVATE.from_js($0, (function(){return document ;})());
+            },
+            "__extjs_20ad46df0c338e20bd94061cd656da90c3ba5ba5": function($0, $1) {
+                $1 = Module.STDWEB_PRIVATE.to_js($1);Module.STDWEB_PRIVATE.from_js($0, (function(){return ($1). getContext ("2d");})());
+            },
+            "__extjs_21adbe0d4961da567547899cd36d8c90c9ccc8b8": function($0) {
+                $0 = Module.STDWEB_PRIVATE.to_js($0);($0). stroke ();
+            },
+            "__extjs_24e7348ebd4300e26b55234a3fd3454a78955a76": function($0, $1, $2, $3, $4) {
+                $0 = Module.STDWEB_PRIVATE.to_js($0);$1 = Module.STDWEB_PRIVATE.to_js($1);$2 = Module.STDWEB_PRIVATE.to_js($2);$3 = Module.STDWEB_PRIVATE.to_js($3);$4 = Module.STDWEB_PRIVATE.to_js($4);($0). fillRect (($1), ($2), ($3), ($4));
+            },
             "__extjs_2f0e52040c1612b5c8f209ef429c8b25c3b66f8b": function($0, $1) {
                 $0 = Module.STDWEB_PRIVATE.to_js($0);$1 = Module.STDWEB_PRIVATE.to_js($1);($0). fillStyle = ($1);
             },
-            "__extjs_7c5535365a3df6a4cc1f59c4a957bfce1dbfb8ee": function($0, $1, $2, $3) {
-                $1 = Module.STDWEB_PRIVATE.to_js($1);$2 = Module.STDWEB_PRIVATE.to_js($2);$3 = Module.STDWEB_PRIVATE.to_js($3);Module.STDWEB_PRIVATE.from_js($0, (function(){var listener = ($1); ($2). addEventListener (($3), listener); return listener ;})());
+            "__extjs_4c3d23fbc56db3e2ef0701318fb0fc2a36d37776": function($0, $1, $2) {
+                $0 = Module.STDWEB_PRIVATE.to_js($0);$1 = Module.STDWEB_PRIVATE.to_js($1);$2 = Module.STDWEB_PRIVATE.to_js($2);($0). lineTo (($1), ($2));
             },
-            "__extjs_690fa77630cde409b06b28d7cb33cf9d181b389e": function($0, $1) {
-                $0 = Module.STDWEB_PRIVATE.to_js($0);$1 = Module.STDWEB_PRIVATE.to_js($1);($0). height = ($1);
-            },
-            "__extjs_ff5103e6cc179d13b4c7a785bdce2708fd559fc0": function($0) {
-                Module.STDWEB_PRIVATE.tmp = Module.STDWEB_PRIVATE.to_js( $0 );
-            },
-            "__extjs_be62a332d41ddd62b4b77feacf9ec13c7ccb1191": function($0, $1) {
-                $0 = Module.STDWEB_PRIVATE.to_js($0);$1 = Module.STDWEB_PRIVATE.to_js($1);($0). font = ($1);
-            },
-            "__extjs_9b6375c037b486fe12587b716aff148f791f3e6a": function($0, $1) {
-                $0 = Module.STDWEB_PRIVATE.to_js($0);$1 = Module.STDWEB_PRIVATE.to_js($1);($0). width = ($1);
-            },
-            "__extjs_050e3f8fd41b9411cfd3fd413ce036926ced0f94": function($0) {
-                return (Module.STDWEB_PRIVATE.acquire_js_reference( $0 ) instanceof CanvasRenderingContext2D) | 0;
-            },
-            "__extjs_76a96b3bedea65a1b66a69d567c207919128318e": function($0, $1) {
-                $1 = Module.STDWEB_PRIVATE.to_js($1);Module.STDWEB_PRIVATE.from_js($0, (function(){alert (($1));})());
-            },
-            "__extjs_db0226ae1bbecd407e9880ee28ddc70fc3322d9c": function($0) {
-                $0 = Module.STDWEB_PRIVATE.to_js($0);Module.STDWEB_PRIVATE.unregister_raw_value (($0));
+            "__extjs_5ac38c9ecbb9a6f75e30e71400dabbd8d3562771": function($0) {
+                return (Module.STDWEB_PRIVATE.acquire_js_reference( $0 ) instanceof Event) | 0;
             },
             "__extjs_5b06766e9b8fe7f9a78694fbeb8578c5da969c0f": function($0, $1) {
                 $0 = Module.STDWEB_PRIVATE.to_js($0);$1 = Module.STDWEB_PRIVATE.to_js($1);($0). textBaseline = ($1);
             },
-            "__extjs_72fc447820458c720c68d0d8e078ede631edd723": function($0, $1, $2) {
-                console.error( 'Panic location:', Module.STDWEB_PRIVATE.to_js_string( $0, $1 ) + ':' + $2 );
+            "__extjs_5f6db237373e98c06fec4a321b98aaf31e941fb9": function($0, $1) {
+                $1 = Module.STDWEB_PRIVATE.to_js($1);Module.STDWEB_PRIVATE.from_js($0, (function(){return Math.floor (Math.random ()* ($1));})());
             },
-            "__extjs_7ed1f62e776725bc93d54f5154abfb28a460024a": function($0) {
-                return (Module.STDWEB_PRIVATE.acquire_js_reference( $0 ) instanceof MouseEvent) | 0;
+            "__extjs_66cd7b3158f81a269e6c4e919e80a10441401908": function($0, $1) {
+                $1 = Module.STDWEB_PRIVATE.to_js($1);Module.STDWEB_PRIVATE.from_js($0, (function(){return ($1). innerHeight ;})());
             },
-            "__extjs_a72c1c3711c212b05f52b8743debbfb8f27e1926": function($0, $1) {
-                $1 = Module.STDWEB_PRIVATE.to_js($1);Module.STDWEB_PRIVATE.from_js($0, (function(){return ($1). height ;})());
+            "__extjs_690fa77630cde409b06b28d7cb33cf9d181b389e": function($0, $1) {
+                $0 = Module.STDWEB_PRIVATE.to_js($0);$1 = Module.STDWEB_PRIVATE.to_js($1);($0). height = ($1);
+            },
+            "__extjs_69920acb495ef5b5f2a2907f2b2109c50f25a632": function($0) {
+                return (Module.STDWEB_PRIVATE.acquire_js_reference( $0 ) instanceof HTMLCanvasElement) | 0;
+            },
+            "__extjs_6c47cfe7b20d140c462be80002863de205806d99": function($0, $1) {
+                $1 = Module.STDWEB_PRIVATE.to_js($1);Module.STDWEB_PRIVATE.from_js($0, (function(){return ($1). width ;})());
+            },
+            "__extjs_6ce693459878698d92d56b499a1b2a5f6bb03b69": function($0) {
+                return (Module.STDWEB_PRIVATE.acquire_js_reference( $0 ) instanceof KeyboardEvent) | 0;
+            },
+            "__extjs_71814f536817e145bf617f76f3fb9c183ccaa313": function($0, $1) {
+                $0 = Module.STDWEB_PRIVATE.to_js($0);$1 = Module.STDWEB_PRIVATE.to_js($1);($0). textAlign = ($1);
+            },
+            "__extjs_74d5764ddc102a8d3b6252116087a68f2db0c9d4": function($0) {
+                Module.STDWEB_PRIVATE.from_js($0, (function(){return window ;})());
+            },
+            "__extjs_76a96b3bedea65a1b66a69d567c207919128318e": function($0, $1) {
+                $1 = Module.STDWEB_PRIVATE.to_js($1);Module.STDWEB_PRIVATE.from_js($0, (function(){alert (($1));})());
             },
             "__extjs_7ad1b6d74ad09161e54cc3395928efc20ff7acaf": function($0, $1) {
                 $1 = Module.STDWEB_PRIVATE.to_js($1);Module.STDWEB_PRIVATE.from_js($0, (function(){return ($1). key ;})());
             },
+            "__extjs_7c5535365a3df6a4cc1f59c4a957bfce1dbfb8ee": function($0, $1, $2, $3) {
+                $1 = Module.STDWEB_PRIVATE.to_js($1);$2 = Module.STDWEB_PRIVATE.to_js($2);$3 = Module.STDWEB_PRIVATE.to_js($3);Module.STDWEB_PRIVATE.from_js($0, (function(){var listener = ($1); ($2). addEventListener (($3), listener); return listener ;})());
+            },
+            "__extjs_7ed1f62e776725bc93d54f5154abfb28a460024a": function($0) {
+                return (Module.STDWEB_PRIVATE.acquire_js_reference( $0 ) instanceof MouseEvent) | 0;
+            },
+            "__extjs_80d6d56760c65e49b7be8b6b01c1ea861b046bf0": function($0) {
+                Module.STDWEB_PRIVATE.decrement_refcount( $0 );
+            },
+            "__extjs_9b6375c037b486fe12587b716aff148f791f3e6a": function($0, $1) {
+                $0 = Module.STDWEB_PRIVATE.to_js($0);$1 = Module.STDWEB_PRIVATE.to_js($1);($0). width = ($1);
+            },
+            "__extjs_9f22d4ca7bc938409787341b7db181f8dd41e6df": function($0) {
+                Module.STDWEB_PRIVATE.increment_refcount( $0 );
+            },
+            "__extjs_a72c1c3711c212b05f52b8743debbfb8f27e1926": function($0, $1) {
+                $1 = Module.STDWEB_PRIVATE.to_js($1);Module.STDWEB_PRIVATE.from_js($0, (function(){return ($1). height ;})());
+            },
+            "__extjs_ae3cbd224f9d5c5e82750fd6b9d46fd91b2f397a": function($0, $1) {
+                $1 = Module.STDWEB_PRIVATE.to_js($1);Module.STDWEB_PRIVATE.from_js($0, (function(){return ($1). innerWidth ;})());
+            },
+            "__extjs_b42435b496a40339524d037e2aaaad915a207cea": function($0, $1) {
+                $0 = Module.STDWEB_PRIVATE.to_js($0);$1 = Module.STDWEB_PRIVATE.to_js($1);($0). lineWidth = ($1);
+            },
             "__extjs_bc37356eeab30045188419c598a7bc84ea209f2a": function($0, $1, $2, $3, $4) {
                 $0 = Module.STDWEB_PRIVATE.to_js($0);$1 = Module.STDWEB_PRIVATE.to_js($1);$2 = Module.STDWEB_PRIVATE.to_js($2);$3 = Module.STDWEB_PRIVATE.to_js($3);$4 = Module.STDWEB_PRIVATE.to_js($4);($0). fillText (($1), ($2), ($3), ($4));
             },
-            "pow": function($0, $1) {
-                return Math.pow( $0, $1 );
+            "__extjs_be62a332d41ddd62b4b77feacf9ec13c7ccb1191": function($0, $1) {
+                $0 = Module.STDWEB_PRIVATE.to_js($0);$1 = Module.STDWEB_PRIVATE.to_js($1);($0). font = ($1);
             },
-            "log10": function($0) {
-                return Math.log10( $0 );
+            "__extjs_bf4a1d0ebf8d0a83d15d3c9334ad2fcafbd5b71e": function($0, $1, $2, $3) {
+                $0 = Module.STDWEB_PRIVATE.to_js($0);$1 = Module.STDWEB_PRIVATE.to_js($1);$2 = Module.STDWEB_PRIVATE.to_js($2);$3 = Module.STDWEB_PRIVATE.to_js($3);($0). fillText (($1), ($2), ($3));
             },
-            "__web_on_grow": function() {
-                const buffer = Module.instance.exports.memory.buffer;
-                HEAP8 = new Int8Array( buffer );
-                HEAP16 = new Int16Array( buffer );
-                HEAP32 = new Int32Array( buffer );
-                HEAPU8 = new Uint8Array( buffer );
-                HEAPU16 = new Uint16Array( buffer );
-                HEAPU32 = new Uint32Array( buffer );
-                HEAPF32 = new Float32Array( buffer );
-                HEAPF64 = new Float64Array( buffer );
+            "__extjs_c316475a01a50f3dfea2c3ec1fbe6277eafe16f2": function($0) {
+                $0 = Module.STDWEB_PRIVATE.to_js($0);($0). beginPath ();
+            },
+            "__extjs_d69002be1576953a1f813b250ec4f9f4bdbd33df": function($0, $1, $2) {
+                $1 = Module.STDWEB_PRIVATE.to_js($1);$2 = Module.STDWEB_PRIVATE.to_js($2);Module.STDWEB_PRIVATE.from_js($0, (function(){return ($1). getElementById (($2));})());
+            },
+            "__extjs_dafc7a42f11dfd59d938a8bf392d728f25dc1191": function($0, $1) {
+                $1 = Module.STDWEB_PRIVATE.to_js($1);Module.STDWEB_PRIVATE.from_js($0, (function(){return ($1). clientX ;})());
+            },
+            "__extjs_db0226ae1bbecd407e9880ee28ddc70fc3322d9c": function($0) {
+                $0 = Module.STDWEB_PRIVATE.to_js($0);Module.STDWEB_PRIVATE.unregister_raw_value (($0));
+            },
+            "__extjs_db305a6c5a92182cd239c9b558d60da7483bb5aa": function($0, $1) {
+                $0 = Module.STDWEB_PRIVATE.to_js($0);$1 = Module.STDWEB_PRIVATE.to_js($1);($0). strokeStyle = ($1);
+            },
+            "__extjs_e72c0fa59b4192eaa92dc61cdc746eab194f8d89": function($0, $1) {
+                $1 = Module.STDWEB_PRIVATE.to_js($1);Module.STDWEB_PRIVATE.from_js($0, (function(){return ($1). clientY ;})());
+            },
+            "__extjs_f930b076cc761caaaaaaf5dfb548bb4e2ef5f084": function($0, $1, $2) {
+                $0 = Module.STDWEB_PRIVATE.to_js($0);$1 = Module.STDWEB_PRIVATE.to_js($1);$2 = Module.STDWEB_PRIVATE.to_js($2);($0). moveTo (($1), ($2));
+            },
+            "__extjs_ff5103e6cc179d13b4c7a785bdce2708fd559fc0": function($0) {
+                Module.STDWEB_PRIVATE.tmp = Module.STDWEB_PRIVATE.to_js( $0 );
+            },
+                "__web_on_grow": __web_on_grow
             }
+        },
+        initialize: function( instance ) {
+            Object.defineProperty( Module, 'instance', { value: instance } );
+            Object.defineProperty( Module, 'web_malloc', { value: Module.instance.exports.__web_malloc } );
+            Object.defineProperty( Module, 'web_free', { value: Module.instance.exports.__web_free } );
+            Object.defineProperty( Module, 'web_table', { value: Module.instance.exports.__indirect_function_table } );
+
+            
+            __web_on_grow();
+            Module.instance.exports.main();
+
+            return Module.exports;
         }
     };
-
-    function __instantiate( instance ) {
-        Object.defineProperty( Module, 'instance', { value: instance } );
-        Object.defineProperty( Module, 'web_malloc', { value: Module.instance.exports.__web_malloc } );
-        Object.defineProperty( Module, 'web_free', { value: Module.instance.exports.__web_free } );
-        Object.defineProperty( Module, 'web_table', { value: Module.instance.exports.__web_table } );
-
-        
-        __imports.env.__web_on_grow();
-        Module.instance.exports.main();
-    }
-
-    if( __load_asynchronously ) {
-        return WebAssembly.instantiate( __wasm_module, __imports )
-            .then( instance => {
-                __instantiate( instance );
-                console.log( "Finished loading Rust wasm module 'ku_web'" );
-                return Module.exports;
-            })
-            .catch( error => {
-                console.log( "Error loading Rust wasm module 'ku_web':", error );
-                throw error;
-            });
-    } else {
-        const instance = new WebAssembly.Instance( __wasm_module, __imports );
-        __instantiate( instance );
-        return Module.exports;
-    }
 }
-
-
-    if( typeof window === "undefined" && typeof process === "object" ) {
-        const fs = require( "fs" );
-        const path = require( "path" );
-        const wasm_path = path.join( __dirname, "ku-web.wasm" );
-        const buffer = fs.readFileSync( wasm_path );
-        const mod = new WebAssembly.Module( buffer );
-
-        return __initialize( mod, false );
-    } else {
-        return fetch( "ku-web.wasm" )
-            .then( response => response.arrayBuffer() )
-            .then( bytes => WebAssembly.compile( bytes ) )
-            .then( mod => __initialize( mod, true ) );
-    }
+ ));
 }));
